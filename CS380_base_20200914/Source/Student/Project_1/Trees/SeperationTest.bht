@@ -1,0 +1,6 @@
+TREENAME(SeperationTest)
+TREENODE(C_Sequencer, 0)
+TREENODE(D_Delay, 1)
+TREENODE(L_SeperateFromNearbyAgents, 2)
+TREENODE(D_Delay, 1)
+TREENODE(L_MoveToCenter, 2)

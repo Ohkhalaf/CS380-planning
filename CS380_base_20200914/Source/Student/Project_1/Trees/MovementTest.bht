@@ -1,0 +1,3 @@
+TREENAME(MovementTest)
+TREENODE(D_InvertedRepeater, 0)
+TREENODE(L_Move, 1)
