@@ -22,6 +22,7 @@ class DeviceResources;
 class ProjectOne;
 class ProjectTwo;
 class ProjectThree;
+class ProjectFour;
 class EnemyAgent;
 
 class Terrain
@@ -29,6 +30,7 @@ class Terrain
     friend class ProjectOne;
     friend class ProjectTwo;
     friend class ProjectThree;
+    friend class ProjectFour;
     friend class EnemyAgent;
 public:
     static const size_t numLayers = 8;

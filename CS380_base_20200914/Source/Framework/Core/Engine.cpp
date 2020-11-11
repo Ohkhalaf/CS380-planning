@@ -15,6 +15,7 @@ written consent of DigiPen Institute of Technology is prohibited.
 #include "Projects/ProjectOne.h"
 #include "Projects/ProjectTwo.h"
 #include "Projects/ProjectThree.h"
+#include "Projects/ProjectFour.h"
 #include "Serialization.h"
 
 // instantiate the global system pointers
@@ -155,6 +156,9 @@ bool Engine::allocate_project()
         case Project::Type::THREE:
             project = std::make_unique<ProjectThree>();
             break;
+		case Project::Type::FOUR:
+			project = std::make_unique<ProjectFour>();
+			break;
         }
     }
     catch (const std::exception &err)

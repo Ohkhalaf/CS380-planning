@@ -19,4 +19,6 @@ written consent of DigiPen Institute of Technology is prohibited.
     const Project::Type Project::defaultProject = Project::Type::TWO;
 #elif PROJECT_THREE
     const Project::Type Project::defaultProject = Project::Type::THREE;
+#elif PROJECT_FOUR
+	const Project::Type Project::defaultProject = Project::Type::FOUR;
 #endif

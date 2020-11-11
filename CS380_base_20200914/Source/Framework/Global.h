@@ -17,7 +17,8 @@ written consent of DigiPen Institute of Technology is prohibited.
 // which project to load on startup
 #define PROJECT_ONE 0
 #define PROJECT_TWO 0
-#define PROJECT_THREE 1
+#define PROJECT_THREE 0
+#define PROJECT_FOUR 1
 
 // forward declarations
 class Engine;

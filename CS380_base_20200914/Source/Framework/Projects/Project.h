@@ -31,7 +31,8 @@ public:
     {
         ONE,
         TWO,
-        THREE
+        THREE,
+		FOUR
     };
 
     static const Type defaultProject;

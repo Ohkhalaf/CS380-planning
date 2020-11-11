@@ -74,6 +74,9 @@
     <Filter Include="Source\Framework\BehaviorTrees">
       <UniqueIdentifier>{8b9856ae-2a38-48a7-8728-801b19ef692c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Student\Project">
+      <UniqueIdentifier>{33e460af-a565-4add-9d5f-6ce53d6a04bb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Framework\pch.h">
@@ -391,6 +394,12 @@
     <ClInclude Include="Source\Student\Project_1\Leaf\L_SetSideways.h">
       <Filter>Source\Student\Project_1\Leaf</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Framework\Projects\ProjectFour.h">
+      <Filter>Source\Student\Project</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Student\Project_4\P4_Pathfinding.h">
+      <Filter>Source\Student\Project</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Framework\Main.cpp">
@@ -683,6 +692,12 @@
     </ClCompile>
     <ClCompile Include="Source\Student\Project_1\Leaf\L_SetSideways.cpp">
       <Filter>Source\Student\Project_1\Leaf</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\Projects\ProjectFour.cpp">
+      <Filter>Source\Student\Project</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Student\Project_4\P4_Pathfinding.cpp">
+      <Filter>Source\Student\Project</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

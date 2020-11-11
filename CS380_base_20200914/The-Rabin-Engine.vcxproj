@@ -212,6 +212,7 @@
     <ClInclude Include="Source\Framework\Misc\TimeTracker.h" />
     <ClInclude Include="Source\Framework\pch.h" />
     <ClInclude Include="Source\Framework\Projects\Project.h" />
+    <ClInclude Include="Source\Framework\Projects\ProjectFour.h" />
     <ClInclude Include="Source\Framework\Projects\ProjectOne.h" />
     <ClInclude Include="Source\Framework\Projects\ProjectThree.h" />
     <ClInclude Include="Source\Framework\Projects\ProjectTwo.h" />
@@ -287,6 +288,7 @@
     <ClInclude Include="Source\Student\Project_1\Leaf\L_UpdateStatus.h" />
     <ClInclude Include="Source\Student\Project_1\NodeHeaders.h" />
     <ClInclude Include="Source\Student\Project_2\P2_Pathfinding.h" />
+    <ClInclude Include="Source\Student\Project_4\P4_Pathfinding.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Framework\Agent\Agent.cpp" />
@@ -319,6 +321,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Source\Framework\Projects\Project.cpp" />
+    <ClCompile Include="Source\Framework\Projects\ProjectFour.cpp" />
     <ClCompile Include="Source\Framework\Projects\ProjectOne.cpp" />
     <ClCompile Include="Source\Framework\Projects\ProjectThree.cpp" />
     <ClCompile Include="Source\Framework\Projects\ProjectTwo.cpp" />
@@ -391,6 +394,7 @@
     <ClCompile Include="Source\Student\Project_1\Setup.cpp" />
     <ClCompile Include="Source\Student\Project_2\P2_Pathfinding.cpp" />
     <ClCompile Include="Source\Student\Project_3\P3_TerrainAnalysis.cpp" />
+    <ClCompile Include="Source\Student\Project_4\P4_Pathfinding.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
