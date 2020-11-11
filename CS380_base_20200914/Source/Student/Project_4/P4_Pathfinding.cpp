@@ -1,6 +1,7 @@
 #include <pch.h>
 #include "Projects/ProjectFour.h"
 #include "P4_Pathfinding.h"
+#include "Terrain/TerrainAnalysis.h"
 
 #pragma region Extra Credit
 bool ProjectFour::implemented_floyd_warshall()

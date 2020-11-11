@@ -203,7 +203,7 @@ void Terrain::refresh_static_analysis_layers()
 
 void Terrain::reset_path_layer()
 {
-    pathLayer.populate_with_value(mapData[currentMap].height, mapData[currentMap].width, Color(Colors::White));
+    pathLayer.populate_with_value(mapData[currentMap].height, mapData[currentMap].width, Color(Colors::MediumPurple));
     pathLayer.configure_color(maxLayerAlpha);
 }
 

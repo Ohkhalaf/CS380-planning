@@ -37,14 +37,23 @@ public:
 
 private:
     AStarAgent *agent;
+    EnemyAgent* enemy;
     PathTester tester;
     bool testRunning;
+
+    std::wstring analysisFrequencyText;
+
+    unsigned analysisFrequency;
+    unsigned frequencyMod;
+    unsigned frequencyOffset;
 
     void build_ui();
     void link_input();
 
     void on_left_mouse_click();
-    void on_f1();
+	void set_analysis_frequency(const unsigned& val);
+    unsigned get_analysis_frequency() { return analysisFrequency; }
+	void on_f1();
     void on_f3();
 
     void on_test_begin();

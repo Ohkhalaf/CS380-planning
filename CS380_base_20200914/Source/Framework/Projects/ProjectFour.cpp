@@ -49,13 +49,15 @@ void grid_pos_to_text2(const GridPos &pos, std::wstring &text)
 
 bool ProjectFour::initialize()
 {
-    std::cout << "Initializing Project Two..." << std::endl;
+    std::cout << "Initializing Project Four..." << std::endl;
 
-    // create all the systems that project two requires
+    // create all the systems that our project requires
     terrain = std::make_unique<Terrain>();
     agents = std::make_unique<AgentOrganizer>();
     ui = std::make_unique<UICoordinator>();
     pather = std::make_unique<AStarPather>();
+
+    set_analysis_frequency(15);
 
     return terrain->initialize() &&
         agents->initialize() &&
@@ -68,6 +70,12 @@ bool ProjectFour::finalize()
 {
     agent = agents->create_pathing_agent();
     tester.set_agent(agent);    
+
+    enemy = agents->create_enemy_agent();
+    enemy->set_debug_coloring(false);
+    enemy->set_single_step(false);
+    enemy->set_color(Vec3(0.8f, 0.0f, 0.0f));
+    enemy->set_player(agent);
 
     // initialize the position text
     grid_pos_to_text2(GridPos { -1, -1 }, startPosText2);
@@ -103,7 +111,7 @@ bool ProjectFour::finalize()
 
 void ProjectFour::shutdown()
 {
-    std::cout << "Shutting Down Project Two..." << std::endl;
+    std::cout << "Shutting Down Project four..." << std::endl;
     pather->shutdown();
     pather.reset();
 
@@ -145,18 +153,15 @@ void ProjectFour::update()
     // have the ui coordinator determine its state
     ui->update();
 
-    // if we currently aren't running any tests
-    if (testRunning == false)
-    {
-        // have the input system update its current state and send out notifications
-        InputHandler::update();
+    // have the input system update its current state and send out notifications
+    InputHandler::update();
 
-        agents->update(deltaTime);
-    }
-    else
-    {
-        tester.tick();
-    }
+    propagate_solo_occupancy(terrain->seekLayer,0.3, 0.2);
+    enemy->logic_tick();
+    //perform_hide_and_seek();
+
+    agents->update(deltaTime);
+
 }
 
 void ProjectFour::build_ui()
@@ -262,7 +267,7 @@ void ProjectFour::build_ui()
 
     // add a text field at the top for the project
     auto projectBanner = ui->create_banner_text_field(UIAnchor::TOP, 0, 32,
-        UIAnchor::CENTER, L"Project Two");
+        UIAnchor::CENTER, L"Student Project");
 
     // add a banner to display overall testing results
     TextGetter testingText = std::bind(&PathTester::get_status_text, &tester);
@@ -317,6 +322,16 @@ void ProjectFour::on_left_mouse_click()
         }
     }
     
+}
+
+//sets the ticks per second
+void ProjectFour::set_analysis_frequency(const unsigned& val)
+{
+    analysisFrequency = val;
+    analysisFrequencyText = std::to_wstring(analysisFrequency);
+
+    frequencyMod = 60 / analysisFrequency;
+    frequencyOffset = frequencyMod / 4;
 }
 
 void ProjectFour::on_f1()
