@@ -24,6 +24,7 @@ class ProjectTwo;
 class ProjectThree;
 class ProjectFour;
 class EnemyAgent;
+class AStarPather2;
 
 class Terrain
 {
@@ -32,6 +33,7 @@ class Terrain
     friend class ProjectThree;
     friend class ProjectFour;
     friend class EnemyAgent;
+    friend class AStarPather2;
 public:
     static const size_t numLayers = 8;
 
