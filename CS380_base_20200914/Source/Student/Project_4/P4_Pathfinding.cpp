@@ -3,7 +3,7 @@
 #include "P4_Pathfinding.h"
 #include "Terrain/TerrainAnalysis.h"
 
-#define ENEMY_VISION_WEIGHT 1.5f
+#define ENEMY_VISION_WEIGHT 5.0f
 
 #pragma region Extra Credit
 bool ProjectFour::implemented_floyd_warshall()
@@ -515,7 +515,7 @@ void AStarPather2::computeCost(const Square& parent, GridPos parent_pos, const i
     {
         // Given Cost plus enemy vision layer
         float given = parent.given + dist;
-        given += ENEMY_VISION_WEIGHT * terrain->agentVisionLayer.get_value(child_pos);
+        given += ENEMY_VISION_WEIGHT * terrain->enemyVisionLayer.get_value(child_pos);
 
         // Heuristic Cost
         // TODO - should be its own function
@@ -569,7 +569,7 @@ void AStarPather2::computeCost(const Square& parent, GridPos parent_pos, const i
 
         // Given Cost and weight from enemy vision layer
         child.given = parent.given + dist;
-        child.given += ENEMY_VISION_WEIGHT * terrain->agentVisionLayer.get_value(child_pos);
+        child.given += ENEMY_VISION_WEIGHT * terrain->enemyVisionLayer.get_value(child_pos);
 
         // Heuristic Cost
         // TODO - should be its own function

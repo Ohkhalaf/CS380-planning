@@ -14,7 +14,7 @@ written consent of DigiPen Institute of Technology is prohibited.
 #include <pch.h>
 #include "AStarAgent.h"
 #include <sstream>
-#include "Projects/ProjectTwo.h"
+#include "Projects/ProjectFour.h"
 
 
 const char *AStarAgent::patherTypeName("A* Agent");
@@ -36,21 +36,6 @@ AStarAgent::AStarAgent(size_t id) : Agent(patherTypeName, id), computingPath(fal
     set_heuristic_weight(1.0f);
 
     availableMethods.emplace(Method::ASTAR);
-
-    if (ProjectTwo::implemented_floyd_warshall() == true)
-    {
-        availableMethods.emplace(Method::FLOYD_WARSHALL);
-    }
-
-    if (ProjectTwo::implemented_jps_plus() == true)
-    {
-        availableMethods.emplace(Method::JPS_PLUS);
-    }
-
-    if (ProjectTwo::implemented_goal_bounding() == true)
-    {
-        availableMethods.emplace(Method::GOAL_BOUNDING);
-    }
 
     Callback mapCallback = std::bind(&AStarAgent::on_map_change, this);
     Messenger::listen_for_message(Messages::MAP_CHANGE, mapCallback);

@@ -24,7 +24,7 @@ std::unique_ptr<Project> project;
 std::unique_ptr<Terrain> terrain;
 std::unique_ptr<AgentOrganizer> agents;
 std::unique_ptr<UICoordinator> ui;
-std::unique_ptr<AStarPather> pather;
+std::unique_ptr<AStarPather2> pather;
 std::unique_ptr<BehaviorTreeBuilder> treeBuilder;
 
 float deltaTime = 0.16f;

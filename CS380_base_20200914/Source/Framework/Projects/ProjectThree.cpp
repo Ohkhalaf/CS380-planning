@@ -35,7 +35,7 @@ bool ProjectThree::initialize()
     terrain = std::make_unique<Terrain>();
     agents = std::make_unique<AgentOrganizer>();
     ui = std::make_unique<UICoordinator>();
-    pather = std::make_unique<AStarPather>();
+    pather = std::make_unique<AStarPather2>();
 
     set_analysis_frequency(15);
 

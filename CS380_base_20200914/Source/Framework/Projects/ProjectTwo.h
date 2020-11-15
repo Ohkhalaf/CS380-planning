@@ -13,7 +13,7 @@ written consent of DigiPen Institute of Technology is prohibited.
 
 #pragma once
 #include "Project.h"
-#include "../Student/Project_2/P2_Pathfinding.h"
+#include "..\Student\Project_4\P4_Pathfinding.h"
 #include "Agent/AStarAgent.h"
 #include "Testing/PathingTester.h"
 
