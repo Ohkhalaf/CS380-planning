@@ -72,6 +72,8 @@ public:
     static Color seekDetectionColor;
     static Color seekSearchColor;
     static float maxLayerAlpha;
+    // OUR PROJECT
+    static Color enemyVisionColor;
 
     void draw();
     void draw_debug();
@@ -98,6 +100,8 @@ private:
     MapLayer<float> agentVisionLayer;
     MapLayer<float> fogLayer;
     MapLayer<float> seekLayer;
+    // OUR PROJECT
+    MapLayer<float> enemyVisionLayer;
 
     std::vector<MapData> mapData;
     std::vector<std::vector<Vec3>> positions;

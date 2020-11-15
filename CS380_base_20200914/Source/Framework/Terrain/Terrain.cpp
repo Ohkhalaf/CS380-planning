@@ -37,6 +37,8 @@ Color Terrain::seekSearchColor = Colors::Red;
 Color Terrain::seekDetectionColor = Colors::Aquamarine;
 float Terrain::maxLayerAlpha = 0.9f;
 const float Terrain::mapSizeInWorld = 100.0f;
+// OUR PROJECT
+Color Terrain::enemyVisionColor = Colors::Crimson;
 
 float globalScalar = 1.0f;
 
@@ -48,6 +50,9 @@ Terrain::Terrain() :
     cellVisibilityLayer("Cell Visibility", layerHeightStep * 5.0f),
     occupancyLayer("Occupancy", layerHeightStep * 4.0f),
     agentVisionLayer("Agent Vision", layerHeightStep * 3.0f),
+    // Our Project Layers
+    enemyVisionLayer("Enemy Vision", layerHeightStep * 2.0f),
+
     fogLayer("Fog of War", layerHeightStep * 1.0f),
     seekLayer("Seek", layerHeightStep * 2.0f),
     currentMap(-1)  
@@ -167,6 +172,9 @@ void Terrain::load_map(unsigned mapIndex)
     configure_float_map_layer(fogLayer, map.height, map.width, fogColor, fogColor);
     configure_float_map_layer(seekLayer, map.height, map.width, seekSearchColor, seekDetectionColor);
 
+    // OUR PROJECT
+    configure_float_map_layer(enemyVisionLayer, map.height, map.width, enemyVisionColor, enemyVisionColor);
+
     globalScalar = mapSizeInWorld / static_cast<float>(map.width);
 
     generate_positions();
@@ -203,7 +211,7 @@ void Terrain::refresh_static_analysis_layers()
 
 void Terrain::reset_path_layer()
 {
-    pathLayer.populate_with_value(mapData[currentMap].height, mapData[currentMap].width, Color(Colors::MediumPurple));
+    pathLayer.populate_with_value(mapData[currentMap].height, mapData[currentMap].width, Color(Colors::White));
     pathLayer.configure_color(maxLayerAlpha);
 }
 
@@ -315,6 +323,8 @@ void Terrain::draw()
     agentVisionLayer.draw(instancer, positions);
     seekLayer.draw(instancer, positions);
     fogLayer.draw(instancer, positions);
+    // OUR PROJECT
+    enemyVisionLayer.draw(instancer, positions);
 }
 
 void Terrain::draw_debug()

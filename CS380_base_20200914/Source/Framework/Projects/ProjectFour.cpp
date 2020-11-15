@@ -59,6 +59,9 @@ bool ProjectFour::initialize()
 
     set_analysis_frequency(15);
 
+    // enable, show enemy vision layer
+    terrain->enemyVisionLayer.set_enabled(true);
+
     return terrain->initialize() &&
         agents->initialize() &&
         ui->initialize() &&
@@ -159,6 +162,8 @@ void ProjectFour::update()
     propagate_solo_occupancy(terrain->seekLayer,0.3, 0.2);
     enemy->logic_tick();
     //perform_hide_and_seek();
+
+    enemy_field_of_view(terrain->enemyVisionLayer, 120.0f, 1.5f, 1.0f, enemy);
 
     agents->update(deltaTime);
 
@@ -352,4 +357,77 @@ void ProjectFour::on_test_begin()
 void ProjectFour::on_test_end()
 {
     testRunning = false;
+}
+
+void ProjectFour::enemy_field_of_view(MapLayer<float>& layer, float fovAngle, float closeDistance, float occupancyValue, AStarAgent* enemy)
+{
+    /*
+        First, clear out the old values in the map layer by setting any positive value to 0.
+        Then, for every cell in the layer that is within the field of view cone, from the
+        enemy agent, mark it with the occupancy value.  Take the dot product between the view
+        vector and the vector from the agent to the cell, both normalized, and compare the
+        cosines directly instead of taking the arccosine to avoid introducing floating-point
+        inaccuracy (larger cosine means smaller angle).
+
+        If the tile is close enough to the enemy (less than closeDistance),
+        you only check if it's visible to enemy.  Make use of the is_clear_path
+        helper function.  Otherwise, you must consider the direction the enemy is facing too.
+        This creates a radius around the enemy that the player can be detected within, as well
+        as a fov cone.
+    */
+
+    // clear off positive values
+    for (int row = 0; row < terrain->get_map_height(); ++row)
+    {
+        for (int col = 0; col < terrain->get_map_width(); ++col)
+        {
+            if (layer.get_value(row, col) > 0.0f)
+            {
+                layer.set_value(row, col, 0.0f);
+            }
+        }
+    }
+
+    // get the position of the agent and the direction the agent is viewing
+    GridPos grid_pos = terrain->get_grid_position(enemy->get_position());
+    Vec2 enemy_pos = Vec2(terrain->get_world_position(grid_pos).x, terrain->get_world_position(grid_pos).z);
+    Vec2 view_dir = Vec2(enemy->get_forward_vector().x, enemy->get_forward_vector().z);
+
+    // normalize the viewing vector
+    view_dir.Normalize();
+
+    // for every cell in the layer
+    for (int row = 0; row < terrain->get_map_height(); ++row)
+    {
+        for (int col = 0; col < terrain->get_map_width(); ++col)
+        {
+            // first check if the agent can see the square
+            if (is_clear_path(grid_pos.row, grid_pos.col, row, col))
+            {
+                // get the vector from the square to the player
+                Vec2 square_pos = Vec2(terrain->get_world_position(row, col).x, terrain->get_world_position(row, col).z);
+                Vec2 square_dir = square_pos - enemy_pos;
+                square_dir.Normalize();
+
+                // dot product the vectors
+                float cosine = view_dir.Dot(square_dir);
+
+                // compare cosines to create viewing cone
+                if (cosine >= cos((fovAngle * PI) / 360.0f))
+                {
+                    layer.set_value(row, col, occupancyValue);
+                    continue;
+                }
+
+                // create radius (testing the example solution, it only makes sense to use row and col)
+                float dx = static_cast<float>(row - grid_pos.row);//square_pos.x - enemy_pos.x;
+                float dy = static_cast<float>(col - grid_pos.col);//square_pos.y - enemy_pos.y;
+                float distance = sqrt((dx * dx) + (dy * dy));
+                if (distance < closeDistance)
+                {
+                    layer.set_value(row, col, occupancyValue);
+                }
+            }
+        }
+    }
 }

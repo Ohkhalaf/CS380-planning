@@ -58,4 +58,6 @@ private:
 
     void on_test_begin();
     void on_test_end();
+
+    void enemy_field_of_view(MapLayer<float>& layer, float fovAngle, float closeDistance, float occupancyValue, AStarAgent* enemy);
 };
