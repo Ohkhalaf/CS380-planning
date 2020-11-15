@@ -17,6 +17,8 @@ written consent of DigiPen Institute of Technology is prohibited.
 #include "AStarAgent.h"
 #include "EnemyAgent.h"
 #include "BehaviorAgent.h"
+#include "APCAgent.h"
+#include "SoldierAgent.h"
 
 enum class BehaviorTreeTypes;
 class UIBehaviorTreeTextField;
@@ -36,6 +38,8 @@ public:
     BehaviorAgent *create_behavior_agent(const char *agentType, BehaviorTreeTypes treeType);
     AStarAgent *create_pathing_agent();
     EnemyAgent *create_enemy_agent();
+    APCAgent *create_apc_agent();
+    SoldierAgent *create_soldier_agent();
     void destroy_agent(Agent *agent);
     
     const std::vector<Agent *> &get_all_agents() const;

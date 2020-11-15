@@ -184,10 +184,12 @@
   <ItemGroup>
     <ClInclude Include="Source\Framework\Agent\Agent.h" />
     <ClInclude Include="Source\Framework\Agent\AgentOrganizer.h" />
+    <ClInclude Include="Source\Framework\Agent\APCAgent.h" />
     <ClInclude Include="Source\Framework\Agent\BehaviorAgent.h" />
     <ClInclude Include="Source\Framework\Agent\CameraAgent.h" />
     <ClInclude Include="Source\Framework\Agent\AStarAgent.h" />
     <ClInclude Include="Source\Framework\Agent\EnemyAgent.h" />
+    <ClInclude Include="Source\Framework\Agent\SoldierAgent.h" />
     <ClInclude Include="Source\Framework\BehaviorTrees\BehaviorTreeBuilder.h" />
     <ClInclude Include="Source\Framework\BehaviorTrees\BehaviorTreePrototype.h" />
     <ClInclude Include="Source\Framework\BehaviorTrees\Blackboard.h" />
@@ -293,10 +295,12 @@
   <ItemGroup>
     <ClCompile Include="Source\Framework\Agent\Agent.cpp" />
     <ClCompile Include="Source\Framework\Agent\AgentOrganizer.cpp" />
+    <ClCompile Include="Source\Framework\Agent\APCAgent.cpp" />
     <ClCompile Include="Source\Framework\Agent\BehaviorAgent.cpp" />
     <ClCompile Include="Source\Framework\Agent\CameraAgent.cpp" />
     <ClCompile Include="Source\Framework\Agent\AStarAgent.cpp" />
     <ClCompile Include="Source\Framework\Agent\EnemyAgent.cpp" />
+    <ClCompile Include="Source\Framework\Agent\SoldierAgent.cpp" />
     <ClCompile Include="Source\Framework\BehaviorTrees\BehaviorNode.cpp" />
     <ClCompile Include="Source\Framework\BehaviorTrees\BehaviorTree.cpp" />
     <ClCompile Include="Source\Framework\BehaviorTrees\BehaviorTreeBuilder.cpp" />

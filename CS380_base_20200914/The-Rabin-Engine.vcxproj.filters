@@ -400,6 +400,12 @@
     <ClInclude Include="Source\Student\Project_4\P4_Pathfinding.h">
       <Filter>Source\Student\Project</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Framework\Agent\APCAgent.h">
+      <Filter>Source\Framework\Agent</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Framework\Agent\SoldierAgent.h">
+      <Filter>Source\Framework\Agent</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Framework\Main.cpp">
@@ -698,6 +704,12 @@
     </ClCompile>
     <ClCompile Include="Source\Student\Project_4\P4_Pathfinding.cpp">
       <Filter>Source\Student\Project</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\Agent\APCAgent.cpp">
+      <Filter>Source\Framework\Agent</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Framework\Agent\SoldierAgent.cpp">
+      <Filter>Source\Framework\Agent</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -73,7 +73,7 @@ BehaviorAgent *AgentOrganizer::create_behavior_agent(const char *type, BehaviorT
     }
 
     std::cout << "Attempted to spawn behavior agent while not in project one" << std::endl;
-    return nullptr;    
+    return nullptr;
 }
 
 AStarAgent *AgentOrganizer::create_pathing_agent()
@@ -102,6 +102,36 @@ EnemyAgent *AgentOrganizer::create_enemy_agent()
 
     agentsAll.emplace_back(agent);
     agentsByType[AStarAgent::patherTypeName].emplace_back(agent);
+
+    return agent;
+}
+
+APCAgent *AgentOrganizer::create_apc_agent()
+{
+    auto& idCounter = agentIDCounts[APCAgent::patherTypeName];
+    const auto id = idCounter++;
+
+    std::cout << "Creating APC agent " << id << std::endl;
+
+    auto agent = new APCAgent(id);
+
+    agentsAll.emplace_back(agent);
+    agentsByType[APCAgent::patherTypeName].emplace_back(agent);
+
+    return agent;
+}
+
+SoldierAgent *AgentOrganizer::create_soldier_agent()
+{
+    auto& idCounter = agentIDCounts[SoldierAgent::patherTypeName];
+    const auto id = idCounter++;
+
+    std::cout << "Creating soldier agent " << id << std::endl;
+
+    auto agent = new SoldierAgent(id);
+
+    agentsAll.emplace_back(agent);
+    agentsByType[SoldierAgent::patherTypeName].emplace_back(agent);
 
     return agent;
 }
