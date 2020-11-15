@@ -24,6 +24,8 @@ public:
     virtual bool finalize() override final;
     virtual void shutdown() override final;
 
+    void clearEnemyVision();
+
     virtual void draw_meshes() override final;
     virtual void draw_sprites() override final;
     virtual void draw_text() override final;
@@ -35,11 +37,15 @@ public:
     static bool implemented_goal_bounding();
     static bool implemented_jps_plus();
 
+    bool getSpawnEnemy() { return spawnEnemy; }
+    void toggleSpawnEnemy() { spawnEnemy = !spawnEnemy; }
+
 private:
     AStarAgent *agent;
-    EnemyAgent* enemy;
+    std::vector<EnemyAgent*> enemy;
     PathTester tester;
     bool testRunning;
+    bool spawnEnemy;
 
     std::wstring analysisFrequencyText;
 

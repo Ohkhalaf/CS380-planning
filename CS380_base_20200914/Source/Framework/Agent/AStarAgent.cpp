@@ -332,6 +332,7 @@ void AStarAgent::process_request()
 
 void AStarAgent::on_map_change()
 {
+    this->set_scaling(this->get_scaling());
     computingPath = false;
     request.path.clear();
 }

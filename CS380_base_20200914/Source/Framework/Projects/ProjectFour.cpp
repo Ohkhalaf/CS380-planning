@@ -74,11 +74,11 @@ bool ProjectFour::finalize()
     agent = agents->create_pathing_agent();
     tester.set_agent(agent);    
 
-    enemy = agents->create_enemy_agent();
-    enemy->set_debug_coloring(false);
-    enemy->set_single_step(false);
-    enemy->set_color(Vec3(0.8f, 0.0f, 0.0f));
-    enemy->set_player(agent);
+    enemy.push_back(agents->create_enemy_agent());
+    enemy[0]->set_debug_coloring(false);
+    enemy[0]->set_single_step(false);
+    enemy[0]->set_color(Vec3(0.8f, 0.0f, 0.0f));
+    enemy[0]->set_player(agent);
 
     // initialize the position text
     grid_pos_to_text2(GridPos { -1, -1 }, startPosText2);
@@ -128,6 +128,21 @@ void ProjectFour::shutdown()
     terrain.reset();
 }
 
+void ProjectFour::clearEnemyVision()
+{
+    // clear off positive values
+    for (int row = 0; row < terrain->get_map_height(); ++row)
+    {
+        for (int col = 0; col < terrain->get_map_width(); ++col)
+        {
+            if (terrain->enemyVisionLayer.get_value(row, col) > 0.0f)
+            {
+                terrain->enemyVisionLayer.set_value(row, col, 0.0f);
+            }
+        }
+    }
+}
+
 void ProjectFour::draw_meshes()
 {
     terrain->draw();
@@ -160,10 +175,12 @@ void ProjectFour::update()
     InputHandler::update();
 
     propagate_solo_occupancy(terrain->seekLayer,0.3, 0.2);
-    enemy->logic_tick();
-    //perform_hide_and_seek();
-
-    enemy_field_of_view(terrain->enemyVisionLayer, 120.0f, 1.5f, 1.0f, enemy);
+    clearEnemyVision();
+    for (auto i : enemy)
+    {
+        i->logic_tick();
+        enemy_field_of_view(terrain->enemyVisionLayer, 120.0f, 1.5f, 1.0f, i);
+    }
 
     agents->update(deltaTime);
 
@@ -214,10 +231,16 @@ void ProjectFour::build_ui()
     auto singleButton = ui->create_toggle_button(UIAnchor::BOTTOM, rubberButton,
         10, singleCB, L"Single Step", singleGet);
 
+    // then a button for single step
+    Callback spawnCB = std::bind(&ProjectFour::toggleSpawnEnemy, this);
+    Getter<bool> spawnGet = std::bind(&ProjectFour::getSpawnEnemy, this);
+    auto enemyButton = ui->create_toggle_button(UIAnchor::BOTTOM, singleButton,
+        10, spawnCB, L"Spawn Enemy", spawnGet);
+
     // then a button for debug coloring
     Callback debugCB = std::bind(&AStarAgent::toggle_debug_coloring, agent);
     Getter<bool> debugGet = std::bind(&AStarAgent::get_debug_coloring, agent);
-    auto debugButton = ui->create_toggle_button(UIAnchor::BOTTOM, singleButton,
+    auto debugButton = ui->create_toggle_button(UIAnchor::BOTTOM, enemyButton,
         10, debugCB, L"Debug Coloring", debugGet);
 
     // then a button for movement
@@ -311,19 +334,33 @@ void ProjectFour::on_left_mouse_click()
     // verify a valid point was determine
     if (worldPos.second == true)
     {
+
         // convert the world position to a terraing grid position
         const auto gridPos = terrain->get_grid_position(worldPos.first);
 
         // verify that the grid position is valid and not a wall
         if (terrain->is_valid_grid_position(gridPos) && !terrain->is_wall(gridPos))
         {
-            const auto agentPos = terrain->get_grid_position(agent->get_position());
+            if (spawnEnemy)
+            {
+                enemy.push_back(agents->create_enemy_agent());
+                enemy[enemy.size() - 1]->set_debug_coloring(false);
+                enemy[enemy.size() - 1]->set_single_step(false);
+                enemy[enemy.size() - 1]->set_color(Vec3(0.8f, 0.0f, 0.0f));
+                enemy[enemy.size() - 1]->set_player(agent);
+                enemy[enemy.size() - 1]->set_position(worldPos.first);
+            }
+            else
+            {
 
-            grid_pos_to_text2(gridPos, goalPosText2);
-            grid_pos_to_text2(agentPos, startPosText2);
+                const auto agentPos = terrain->get_grid_position(agent->get_position());
 
-            // have the agent path to the position
-            agent->path_to(worldPos.first);
+                grid_pos_to_text2(gridPos, goalPosText2);
+                grid_pos_to_text2(agentPos, startPosText2);
+
+                // have the agent path to the position
+                agent->path_to(worldPos.first);
+            }
         }
     }
     
@@ -376,17 +413,6 @@ void ProjectFour::enemy_field_of_view(MapLayer<float>& layer, float fovAngle, fl
         as a fov cone.
     */
 
-    // clear off positive values
-    for (int row = 0; row < terrain->get_map_height(); ++row)
-    {
-        for (int col = 0; col < terrain->get_map_width(); ++col)
-        {
-            if (layer.get_value(row, col) > 0.0f)
-            {
-                layer.set_value(row, col, 0.0f);
-            }
-        }
-    }
 
     // get the position of the agent and the direction the agent is viewing
     GridPos grid_pos = terrain->get_grid_position(enemy->get_position());
