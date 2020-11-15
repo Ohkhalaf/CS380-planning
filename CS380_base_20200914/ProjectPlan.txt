@@ -1,0 +1,20 @@
+Enemies:
+> Enemies are static agents with a field of view
+> Allies pathfinding will factor in weights for tiles in the enemies line of sight
+
+Vehicle:
+> Planning Options:
+>>> Move(Gridpos pos)
+>>> DropOff(agent* a)
+> Extends from agent class
+> Make them take up 1x1 to start, later expand to larger grid size
+> Move faster than regular agents
+> We may be able to use proximity to wall as a factor for pathfinding with larger vehicles
+
+Allies:
+> Planning Options:
+>>> Move(Gridpos pos)
+>>> Board(Vehicle* v)
+>>> Attack(Enemy* e)
+>>> ThrowSmokeScreen(Gridpos pos)
+> A radius around the smokescreen will turn values in the enemy vision layer to zero
