@@ -49,7 +49,7 @@ private:
     GridPos playerPrevious;
     float timer;
 
-    static constexpr float movementSpeed = 2000.0f / 2.3f;
+    static constexpr float movementSpeed = 0.0f;
     static constexpr float repathFactor = 0.6f;
     static constexpr float reactTimeIdle = 0.4f;
     static constexpr float reactTimeSeek = 0.1f;

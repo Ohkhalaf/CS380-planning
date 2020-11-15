@@ -40,6 +40,8 @@ bool EnemyAgent::logic_tick()
     enemy_field_of_view(terrain->seekLayer, fov, radius, state == State::PATROL ? -0.25f : -0.5f, this);
     normalize_solo_occupancy(terrain->seekLayer);
 
+    return true;
+
     // see if the player is within the detection area
     if (enemy_find_player(terrain->seekLayer, this, player) == true)
     {
@@ -55,7 +57,7 @@ bool EnemyAgent::logic_tick()
         if (playerGrid != playerPrevious)
         {
             set_movement_speed(movementSpeed * repathFactor);
-            playerPrevious = playerGrid;
+            //playerPrevious = playerGrid;
 
             // we know where the player currently is, remove all old possible search locations
             auto op = [](float &val)
@@ -70,8 +72,8 @@ bool EnemyAgent::logic_tick()
             // and mark the player's current position
             terrain->seekLayer.set_value(playerGrid, 1.0f);
 
-            // and path there
-            path_to(playerWorld);
+           // // and path there
+           // path_to(playerWorld);
 
             return true;
         }
@@ -105,14 +107,7 @@ bool EnemyAgent::logic_tick()
         break;
 
     case State::PATROL:
-        if (update_timer(reactTimeIdle))
-        {
-            if (request.path.size() == 0)
-            {
-                choose_random_goal();
-                update_timer(0.0f);
-            }
-        }
+        request.path.clear();
         break;
     }
 

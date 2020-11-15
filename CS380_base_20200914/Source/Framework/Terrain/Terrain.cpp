@@ -38,7 +38,7 @@ Color Terrain::seekDetectionColor = Colors::Aquamarine;
 float Terrain::maxLayerAlpha = 0.9f;
 const float Terrain::mapSizeInWorld = 100.0f;
 // OUR PROJECT
-Color Terrain::enemyVisionColor = Colors::Crimson;
+Color Terrain::enemyVisionColor = Colors::CadetBlue;
 
 float globalScalar = 1.0f;
 
