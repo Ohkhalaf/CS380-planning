@@ -71,8 +71,9 @@ bool ProjectFour::initialize()
 
 bool ProjectFour::finalize()
 {
-    agent = agents->create_pathing_agent();
-    tester.set_agent(agent);    
+    agent = agents->create_apc_agent();
+    agent->set_color(Vec3(134/256.0f, 97/256.0f, 193/256.0f));
+    tester.set_agent(agent);
 
     enemy.push_back(agents->create_enemy_agent());
     enemy[0]->set_debug_coloring(false);

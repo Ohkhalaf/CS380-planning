@@ -16,11 +16,26 @@ written consent of DigiPen Institute of Technology is prohibited.
 #include <list>
 #include "misc/PathfindingDetails.hpp"
 
+class SoldierAgent;
+
 class APCAgent : public AStarAgent
 {
 public:
     APCAgent(size_t id);
 
-protected:
-    
+    void logic_tick();
+
+private:
+    enum class State
+    {
+        IDLE,
+        MOVING,
+        BOARDING,
+        DROPPING
+    } state;
+
+    static constexpr float movementSpeed = 2000.0f / 1.0f;
+
+    std::vector<Agent*> get_nearby_soldiers();
+    void pick_up_soldier(SoldierAgent* s);
 };

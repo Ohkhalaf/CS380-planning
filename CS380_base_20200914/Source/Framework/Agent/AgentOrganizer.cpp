@@ -108,7 +108,7 @@ EnemyAgent *AgentOrganizer::create_enemy_agent()
 
 APCAgent *AgentOrganizer::create_apc_agent()
 {
-    auto& idCounter = agentIDCounts[APCAgent::patherTypeName];
+    auto& idCounter = agentIDCounts["APC Agent"];
     const auto id = idCounter++;
 
     std::cout << "Creating APC agent " << id << std::endl;
@@ -123,7 +123,7 @@ APCAgent *AgentOrganizer::create_apc_agent()
 
 SoldierAgent *AgentOrganizer::create_soldier_agent()
 {
-    auto& idCounter = agentIDCounts[SoldierAgent::patherTypeName];
+    auto& idCounter = agentIDCounts["Soldier Agent"];
     const auto id = idCounter++;
 
     std::cout << "Creating soldier agent " << id << std::endl;
@@ -173,6 +173,7 @@ void AgentOrganizer::draw() const
 {
     for (const auto & agent : agentsAll)
     {
+        // TODO? Don't draw soldier agents currently onboard vehicles
         agent->draw_mesh();
     }
 }
