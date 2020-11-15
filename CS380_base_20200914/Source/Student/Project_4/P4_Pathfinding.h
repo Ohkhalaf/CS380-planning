@@ -41,10 +41,32 @@ public:
         It doesn't all need to be in this header and cpp, structure it whatever way
         makes sense to you.
     */
+    float AStarPather2::get_enemy_weight()
+    {
+        return enemyWeight;
+    }
+
+    void AStarPather2::set_enemy_weight(const float& weight)
+    {
+        enemyWeight = weight;
+        std::wstringstream stream;
+        stream.precision(3);
+        stream << weight;
+        enemyWeightText = stream.str();
+    }
+
+    const std::wstring& AStarPather2::get_enemy_weight_text()
+    {
+        return enemyWeightText;
+    }
+
 
 private:
 
     typedef unsigned short int XY;
+    
+    float enemyWeight = 5.0f;
+
 
     const float ONE = 1.0f;                  // straight cost
     const float SQUAREROOT2 = static_cast<float>(sqrt(2));//1.4142135624f; // diagonal cost
@@ -166,4 +188,8 @@ private:
     void rubberToSmooth();
     // smooth the path found with Catmull-Rom Spline
     void smoothPath();
+
+    protected:
+        std::wstring enemyWeightText;
+   
 };

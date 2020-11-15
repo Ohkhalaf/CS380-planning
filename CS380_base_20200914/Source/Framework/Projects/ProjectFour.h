@@ -40,9 +40,31 @@ public:
     bool getSpawnEnemy() { return spawnEnemy; }
     void toggleSpawnEnemy() { spawnEnemy = !spawnEnemy; }
 
+    float get_enemy_weight()
+    {
+        return enemyWeight;
+    }
+
+    void set_enemy_weight(const float& weight)
+    {
+        enemyWeight = weight;
+        std::wstringstream stream;
+        stream.precision(3);
+        stream << weight;
+        enemyWeightText = stream.str();
+    }
+
+    const std::wstring& get_enemy_weight_text()
+    {
+        return enemyWeightText;
+    }
+
+
 private:
     AStarAgent *agent;
     std::vector<EnemyAgent*> enemy;
+    std::wstring enemyWeightText;
+    float enemyWeight = 5.0f;
     PathTester tester;
     bool testRunning;
     bool spawnEnemy;

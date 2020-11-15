@@ -179,7 +179,7 @@ void ProjectFour::update()
     for (auto i : enemy)
     {
         i->logic_tick();
-        enemy_field_of_view(terrain->enemyVisionLayer, 120.0f, 1.5f, 1.0f, i);
+        enemy_field_of_view(terrain->enemyVisionLayer, 120.0f, 1.5f, get_enemy_weight(), i);
     }
 
     agents->update(deltaTime);
@@ -206,17 +206,24 @@ void ProjectFour::build_ui()
     auto heuristicButton = ui->create_dynamic_button(UIAnchor::BOTTOM, methodButton,
         10, heuristicCB, heuristicText);
 
-    // then a slider to control the weight
-    Getter<float> weightGet = std::bind(&AStarAgent::get_heuristic_weight, agent);
-    Setter<float> weightSet = std::bind(&AStarAgent::set_heuristic_weight, agent, std::placeholders::_1);
-    TextGetter weightText = std::bind(&AStarAgent::get_heuristic_weight_text, agent);
-    auto weightSlider = ui->create_slider<float>(UIAnchor::BOTTOM, heuristicButton,
-        10, 0.0f, 2.0f, weightGet, weightSet, weightText, L"Weight:");
+   // then a slider to control the weight
+   Getter<float> weightGet = std::bind(&AStarAgent::get_heuristic_weight, agent);
+   Setter<float> weightSet = std::bind(&AStarAgent::set_heuristic_weight, agent, std::placeholders::_1);
+   TextGetter weightText = std::bind(&AStarAgent::get_heuristic_weight_text, agent);
+   auto weightSlider = ui->create_slider<float>(UIAnchor::BOTTOM, heuristicButton,
+       10, 0.0f, 2.0f, weightGet, weightSet, weightText, L"Weight:");
+
+   //a slider to control the enemyweight
+   Getter<float> enemyWeightGet = std::bind(&ProjectFour::get_enemy_weight, this);
+   Setter<float> enemyWeightSet = std::bind(&ProjectFour::set_enemy_weight, this, std::placeholders::_1);
+   TextGetter enemyWeightText = std::bind(&ProjectFour::get_enemy_weight_text, this);
+   auto enemyWeightSlider = ui->create_slider<float>(UIAnchor::BOTTOM, weightSlider,
+        10, 0.0f, 20.0f, enemyWeightGet, enemyWeightSet, enemyWeightText, L"Enemy weight:");
 
     // then a button for smoothing
     Callback smoothingCB = std::bind(&AStarAgent::toggle_smoothing, agent);
     Getter<bool> smoothingGet = std::bind(&AStarAgent::get_smoothing, agent);
-    auto smoothingButton = ui->create_toggle_button(UIAnchor::BOTTOM, weightSlider,
+    auto smoothingButton = ui->create_toggle_button(UIAnchor::BOTTOM, enemyWeightSlider,
         10, smoothingCB, L"Smoothing", smoothingGet);
 
     // then a button for rubberbanding
@@ -231,7 +238,7 @@ void ProjectFour::build_ui()
     auto singleButton = ui->create_toggle_button(UIAnchor::BOTTOM, rubberButton,
         10, singleCB, L"Single Step", singleGet);
 
-    // then a button for single step
+    // then a button for toggling enemy spawn
     Callback spawnCB = std::bind(&ProjectFour::toggleSpawnEnemy, this);
     Getter<bool> spawnGet = std::bind(&ProjectFour::getSpawnEnemy, this);
     auto enemyButton = ui->create_toggle_button(UIAnchor::BOTTOM, singleButton,
