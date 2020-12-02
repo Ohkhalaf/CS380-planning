@@ -214,17 +214,10 @@ void ProjectFour::build_ui()
    auto weightSlider = ui->create_slider<float>(UIAnchor::BOTTOM, heuristicButton,
        10, 0.0f, 2.0f, weightGet, weightSet, weightText, L"Weight:");
 
-   //a slider to control the enemyweight
-   Getter<float> enemyWeightGet = std::bind(&ProjectFour::get_enemy_weight, this);
-   Setter<float> enemyWeightSet = std::bind(&ProjectFour::set_enemy_weight, this, std::placeholders::_1);
-   TextGetter enemyWeightText = std::bind(&ProjectFour::get_enemy_weight_text, this);
-   auto enemyWeightSlider = ui->create_slider<float>(UIAnchor::BOTTOM, weightSlider,
-        10, 0.0f, 20.0f, enemyWeightGet, enemyWeightSet, enemyWeightText, L"Enemy weight:");
-
     // then a button for smoothing
     Callback smoothingCB = std::bind(&AStarAgent::toggle_smoothing, agent);
     Getter<bool> smoothingGet = std::bind(&AStarAgent::get_smoothing, agent);
-    auto smoothingButton = ui->create_toggle_button(UIAnchor::BOTTOM, enemyWeightSlider,
+    auto smoothingButton = ui->create_toggle_button(UIAnchor::BOTTOM, weightSlider,
         10, smoothingCB, L"Smoothing", smoothingGet);
 
     // then a button for rubberbanding
@@ -250,12 +243,24 @@ void ProjectFour::build_ui()
     Setter<float> enemyRotationSet = std::bind(&ProjectFour::set_enemy_rotation, this, std::placeholders::_1);
     TextGetter enemyRotationText = std::bind(&ProjectFour::get_enemy_rotation_text, this);
     auto enemyRotationSlider = ui->create_slider<float>(UIAnchor::BOTTOM, enemyButton,
-        20, 0.0f, 360.0f, enemyRotationGet, enemyRotationSet, enemyRotationText, L"Enemy Rotation:");
+        20, 0.0f, 360.0f, enemyRotationGet, enemyRotationSet, enemyRotationText, L"Rotation:");
+
+    //a slider to control the enemyweight
+    Getter<float> enemyWeightGet = std::bind(&ProjectFour::get_enemy_weight, this);
+    Setter<float> enemyWeightSet = std::bind(&ProjectFour::set_enemy_weight, this, std::placeholders::_1);
+    TextGetter enemyWeightText = std::bind(&ProjectFour::get_enemy_weight_text, this);
+    auto enemyWeightSlider = ui->create_slider<float>(UIAnchor::BOTTOM, enemyRotationSlider,
+        10, 0.0f, 20.0f, enemyWeightGet, enemyWeightSet, enemyWeightText, L"Enemy Wght:");
+
+    Callback EnemyDeleteCB = std::bind(&ProjectFour::delete_enemies, this);
+    TextGetter EnemyDeleteText = std::bind(&ProjectFour::get_delete_enemy_text, this);
+    auto EnemyDeleteButton = ui->create_dynamic_button(UIAnchor::BOTTOM, enemyWeightSlider, 10,
+        EnemyDeleteCB, EnemyDeleteText);
 
     // then a button for debug coloring
     Callback debugCB = std::bind(&AStarAgent::toggle_debug_coloring, agent);
     Getter<bool> debugGet = std::bind(&AStarAgent::get_debug_coloring, agent);
-    auto debugButton = ui->create_toggle_button(UIAnchor::BOTTOM, enemyRotationSlider,
+    auto debugButton = ui->create_toggle_button(UIAnchor::BOTTOM, EnemyDeleteButton,
         10, debugCB, L"Debug Coloring", debugGet);
 
     // then a button for movement
@@ -364,7 +369,7 @@ void ProjectFour::on_left_mouse_click()
                 enemy[enemy.size() - 1]->set_color(Vec3(0.8f, 0.0f, 0.0f));
                 enemy[enemy.size() - 1]->set_yaw(enemyRotation);
                 enemy[enemy.size() - 1]->set_player(agent);
-                enemy[enemy.size() - 1]->set_position(worldPos.first);
+                enemy[enemy.size() - 1]->set_position(terrain->get_world_position(terrain->get_grid_position(worldPos.first)));
             }
             else
             {

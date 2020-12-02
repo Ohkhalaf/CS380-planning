@@ -59,6 +59,20 @@ public:
         return enemyWeightText;
     }
 
+    const std::wstring& get_delete_enemy_text()
+    {
+        return DestroyEnemyText;
+    }
+
+    void delete_enemies()
+    {
+        for (auto unit : enemy)
+        {
+            agents->destroy_agent(unit);
+        }
+        enemy.clear();
+    }
+
     float get_enemy_rotation()
     {
         return enemyRotation;
@@ -66,7 +80,7 @@ public:
 
     void set_enemy_rotation(const float& rotation)
     {
-        enemyRotation = rotation;
+        enemyRotation = (rotation*PI) / 180.0f;
         std::wstringstream stream;
         stream.precision(3);
         stream << rotation;
@@ -83,6 +97,7 @@ private:
     AStarAgent *agent;
     std::vector<EnemyAgent*> enemy;
     std::wstring enemyWeightText;
+    std::wstring DestroyEnemyText = L"Delete all enemies";
     std::wstring enemyRotationText;
     float enemyWeight = 5.0f;
     float enemyRotation = 0;
