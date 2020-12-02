@@ -49,7 +49,7 @@ public:
     {
         enemyWeight = weight;
         std::wstringstream stream;
-        stream.precision(3);
+        stream.precision(2);
         stream << weight;
         enemyWeightText = stream.str();
     }
@@ -59,12 +59,33 @@ public:
         return enemyWeightText;
     }
 
+    float get_enemy_rotation()
+    {
+        return enemyRotation;
+    }
+
+    void set_enemy_rotation(const float& rotation)
+    {
+        enemyRotation = rotation;
+        std::wstringstream stream;
+        stream.precision(3);
+        stream << rotation;
+        enemyRotationText = stream.str();
+    }
+
+    const std::wstring& get_enemy_rotation_text()
+    {
+        return enemyRotationText;
+    }
+
 
 private:
     AStarAgent *agent;
     std::vector<EnemyAgent*> enemy;
     std::wstring enemyWeightText;
+    std::wstring enemyRotationText;
     float enemyWeight = 5.0f;
+    float enemyRotation = 0;
     PathTester tester;
     bool testRunning;
     bool spawnEnemy;

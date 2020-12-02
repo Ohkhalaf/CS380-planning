@@ -245,10 +245,17 @@ void ProjectFour::build_ui()
     auto enemyButton = ui->create_toggle_button(UIAnchor::BOTTOM, singleButton,
         10, spawnCB, L"Spawn Enemy", spawnGet);
 
+    //a slider to control the enemyweight
+    Getter<float> enemyRotationGet = std::bind(&ProjectFour::get_enemy_rotation, this);
+    Setter<float> enemyRotationSet = std::bind(&ProjectFour::set_enemy_rotation, this, std::placeholders::_1);
+    TextGetter enemyRotationText = std::bind(&ProjectFour::get_enemy_rotation_text, this);
+    auto enemyRotationSlider = ui->create_slider<float>(UIAnchor::BOTTOM, enemyButton,
+        20, 0.0f, 360.0f, enemyRotationGet, enemyRotationSet, enemyRotationText, L"Enemy Rotation:");
+
     // then a button for debug coloring
     Callback debugCB = std::bind(&AStarAgent::toggle_debug_coloring, agent);
     Getter<bool> debugGet = std::bind(&AStarAgent::get_debug_coloring, agent);
-    auto debugButton = ui->create_toggle_button(UIAnchor::BOTTOM, enemyButton,
+    auto debugButton = ui->create_toggle_button(UIAnchor::BOTTOM, enemyRotationSlider,
         10, debugCB, L"Debug Coloring", debugGet);
 
     // then a button for movement
@@ -355,6 +362,7 @@ void ProjectFour::on_left_mouse_click()
                 enemy[enemy.size() - 1]->set_debug_coloring(false);
                 enemy[enemy.size() - 1]->set_single_step(false);
                 enemy[enemy.size() - 1]->set_color(Vec3(0.8f, 0.0f, 0.0f));
+                enemy[enemy.size() - 1]->set_yaw(enemyRotation);
                 enemy[enemy.size() - 1]->set_player(agent);
                 enemy[enemy.size() - 1]->set_position(worldPos.first);
             }
