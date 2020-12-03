@@ -193,8 +193,11 @@ void ProjectFour::update()
     clearEnemyVision();
     for (auto i : enemy)
     {
-        i->logic_tick();
-        enemy_field_of_view(terrain->enemyVisionLayer, 120.0f, 1.5f, get_enemy_weight(), i);
+        if (i->get_active())
+        {
+            i->logic_tick();
+            enemy_field_of_view(terrain->enemyVisionLayer, 120.0f, 1.5f, get_enemy_weight(), i);
+        }
     }
 
     agents->update(deltaTime);
