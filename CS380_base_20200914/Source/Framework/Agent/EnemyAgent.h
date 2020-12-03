@@ -32,6 +32,9 @@ public:
 
     void set_player(AStarAgent *player);
 
+    void set_active(bool newActive) { active = newActive; }
+    bool get_active() { return active; }
+
 private:
     enum class State
     {
@@ -47,6 +50,7 @@ private:
     std::wstring radiusText;
     AStarAgent *player;
     GridPos playerPrevious;
+    bool active = true;
     float timer;
 
     static constexpr float movementSpeed = 0.0f;
