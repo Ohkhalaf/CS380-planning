@@ -422,6 +422,115 @@ PathResult AStarPather2::compute_path(PathRequest &request)
     return PathResult::IMPOSSIBLE;
 }
 
+
+float AStarPather2::compute_path_cost(PathRequest& request)
+{
+    /*
+        This is where you handle pathing requests, each request has several fields:
+
+        start/goal - start and goal world positions
+        path - where you will build the path upon completion, path should be
+            start to goal, not goal to start
+        heuristic - which heuristic calculation to use
+        weight - the heuristic weight to be applied
+        newRequest - whether this is the first request for this path, should generally
+            be true, unless single step is on
+
+        smoothing - whether to apply smoothing to the path
+        rubberBanding - whether to apply rubber banding
+        singleStep - whether to perform only a single A* step
+        debugColoring - whether to color the grid based on the A* state:
+            closed list nodes - yellow
+            open list nodes - blue
+
+            use terrain->set_color(row, col, Colors::YourColor);
+            also it can be helpful to temporarily use other colors for specific states
+            when you are testing your algorithms
+
+        method - which algorithm to use: A*, Floyd-Warshall, JPS+, or goal bounding,
+            will be A* generally, unless you implement extra credit features
+
+        The return values are:
+            PROCESSING - a path hasn't been found yet, should only be returned in
+                single step mode until a path is found
+            COMPLETE - a path to the goal was found and has been built in request.path
+            IMPOSSIBLE - a path from start to goal does not exist, do not add start position to path
+    */
+
+    // WRITE YOUR CODE HERE
+
+    // get starting and ending position
+    GridPos start = terrain->get_grid_position(request.start);
+    GridPos goal = terrain->get_grid_position(request.goal);
+
+    if (request.newRequest)
+    {
+        // color positions
+        if (request.settings.debugColoring)
+        {
+            terrain->set_color(start, Colors::Yellow);
+            terrain->set_color(goal, Colors::ForestGreen);
+        }
+
+        clearData();
+
+        // push starting node into the open list
+        Square& begin = getSquare(start);
+        begin.xylist = OPEN | ((start.row << 8) & ROW) | ((start.col << 2) & COL);
+        // OPENLIST CHANGES: openlist.push_back(begin.xylist);
+        openlist[ol_size] = begin.xylist;
+        ++ol_size;
+        prev_cheapest = 0;
+    }
+
+
+    GridPos pos;  // position on grid of cheapest node
+    GridPos prev; // position of the cheapest node's parent
+
+    // while the open list is not empty
+    while (ol_size != 0) // OPENLIST CHANGES:!openlist.empty())
+    {
+        // pop the cheapest node off
+        //bucketSort();
+        unpackPos(openlist[ol_size - 1], pos); // OPENLIST CHANGES:openlist.back(), pos);
+        Square& cheapest = getSquare(pos);
+        prev_cheapest = cheapest.cost;
+        unpackPos(cheapest.xylist, prev);
+        --ol_size; // OPENLIST CHANGES:openlist.pop_back();
+
+        // check if this is the goal
+        if (pos == goal)
+        {
+            // GOAL FOUND
+            if (request.settings.debugColoring)
+            {
+                terrain->set_color(goal, Colors::Red);
+            }
+            float finalCost = cheapest.cost;
+            buildPath(cheapest, request);
+            clearData();
+            return finalCost;
+        }
+
+        /* Get all children */
+        evaluateChildren(cheapest, pos, prev, goal, request);
+
+        // remove from open list
+        cheapest.xylist ^= OPEN;
+        // place parent on closed list
+        cheapest.xylist |= CLOSED;
+        if (request.settings.debugColoring)
+        {
+            terrain->set_color(pos, Colors::Orange);
+        }
+    }
+
+    // open list was empty, no path found
+    clearData();
+    return -1;
+}
+
+
 // checks to see if grid position is not out of bounds, not a wall, and not the way back
 // DOES NO CHECKING RESTRICTED DIAGONAL MOVEMENT NEAR WALLS
 bool AStarPather2::validNeighbor(const int& row, const int& col, const GridPos& prev)

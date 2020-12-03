@@ -34,6 +34,7 @@ public:
     bool initialize();
     void shutdown();
     PathResult compute_path(PathRequest &request);
+    float compute_path_cost(PathRequest& request);
     /* ************************************************** */
 
     /*
