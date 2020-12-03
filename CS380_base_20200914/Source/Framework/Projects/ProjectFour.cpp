@@ -509,11 +509,14 @@ void ProjectFour::ClearLayer(MapLayer<float>& layer)
 }
 
 // gets the vision of all given enemies onto a layer
-void ProjectFour::CalcEnemyVisionLayer(MapLayer<float>& layer, const std::vector<EnemyAgent*>& enemies)
+void ProjectFour::CalcEnemyVisionLayer(MapLayer<float>& layer)
 {
-    for (int i = 0; i < static_cast<int>(enemies.size()); ++i)
+    for (int i = 0; i < static_cast<int>(enemy.size()); ++i)
     {
-        enemy_field_of_view(layer, 120.0f, 1.5f, get_enemy_weight(), enemies[i]);
+        if (enemy[i]->get_active())
+        {
+            enemy_field_of_view(layer, 120.0f, 1.5f, get_enemy_weight(), enemy[i]);
+        }
     }
 }
 
@@ -525,6 +528,8 @@ void ProjectFour::CalcEnemyVisionLayer(MapLayer<float>& layer, const std::vector
 void ProjectFour::EliminateEnemy(const EnemyAgent* e, const SoldierAgent* s, ProjectFour::MapState& state)
 {
     // TODO: Call new pathfinding function that returns cost
+    PathRequest request;
+    request.newRequest = true;
     //pather->compute_path_cost()
 
     // find soldier
@@ -538,17 +543,17 @@ void ProjectFour::EliminateEnemy(const EnemyAgent* e, const SoldierAgent* s, Pro
     }
 
     // find enemy
-    for (int i = 0; i < static_cast<int>(state.enemies.size()); ++i)
+    for (int i = 0; i < static_cast<int>(enemy.size()); ++i)
     {
-        // remove enemy from vector
-        if (state.enemies[i] == e)
+        // deactivate enemy
+        if (enemy[i] == e)
         {
-            state.enemies.erase(state.enemies.begin() + i);
+            enemy[i]->set_active(false);
             break;
         }
     }
 
     // calculate new enemy vision layer
     ClearLayer(state.layer);
-    CalcEnemyVisionLayer(state.layer, state.enemies);
+    CalcEnemyVisionLayer(state.layer);
 };

@@ -128,7 +128,6 @@ private:
 
     struct MapState
     {
-        std::vector<EnemyAgent*> enemies;
         std::vector<SoldierAgent*> soldiers;
         Agent* president;
         MapLayer<float> layer;
@@ -139,7 +138,7 @@ private:
     void ClearLayer(MapLayer<float>& layer);
 
     // gets the vision of all given enemies onto a layer
-    void CalcEnemyVisionLayer(MapLayer<float>& layer, const std::vector<EnemyAgent*>& enemies);
+    void CalcEnemyVisionLayer(MapLayer<float>& layer);
 
     // TASK
     // > removes given enemy from list
