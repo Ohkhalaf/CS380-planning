@@ -123,5 +123,28 @@ private:
     void on_test_begin();
     void on_test_end();
 
+    // placed the enemies field of view onto the layer
     void enemy_field_of_view(MapLayer<float>& layer, float fovAngle, float closeDistance, float occupancyValue, AStarAgent* enemy);
+
+    struct MapState
+    {
+        std::vector<EnemyAgent*> enemies;
+        std::vector<SoldierAgent*> soldiers;
+        Agent* president;
+        MapLayer<float> layer;
+        float total_cost;
+    };
+
+    // clears out the given map layer
+    void ClearLayer(MapLayer<float>& layer);
+
+    // gets the vision of all given enemies onto a layer
+    void CalcEnemyVisionLayer(MapLayer<float>& layer, const std::vector<EnemyAgent*>& enemies);
+
+    // TASK
+    // > removes given enemy from list
+    // > places given soldier in enemy position
+    // > calculates new layer to come from enemy removal
+    // > adds pathfinding cost to total cost
+    void EliminateEnemy(const EnemyAgent* e, const SoldierAgent* s, MapState& state);
 };

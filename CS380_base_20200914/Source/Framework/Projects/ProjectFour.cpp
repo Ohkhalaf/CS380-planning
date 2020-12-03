@@ -32,6 +32,20 @@ TimeTracker<std::chrono::microseconds> pathingTimer2;
 std::wstring startPosText2;
 std::wstring goalPosText2;
 
+// Create all plans:
+// for i : (from 0 to num of enemies)
+//   for each enemy from 0 to i
+//     for each agent
+//     find closest agent to enemy through pathfinding
+//     Plan += ElimateEnemy(enemy, closest_agent);
+//       (update LevelState)
+
+// For each plan
+//   Plan += MovePresidentToGoal()
+//     (update LevelState)
+
+// Finally, chose the plan with the smallest total cost
+
 const std::wstring &start_pos_text_getter2()
 {
     return startPosText2;
@@ -478,3 +492,60 @@ void ProjectFour::enemy_field_of_view(MapLayer<float>& layer, float fovAngle, fl
         }
     }
 }
+
+// clears out the given map layer
+void ProjectFour::ClearLayer(MapLayer<float>& layer)
+{
+    for (int row = 0; row < terrain->get_map_height(); ++row)
+    {
+        for (int col = 0; col < terrain->get_map_width(); ++col)
+        {
+            layer.set_value(row, col, 0.0f);
+        }
+    }
+}
+
+// gets the vision of all given enemies onto a layer
+void ProjectFour::CalcEnemyVisionLayer(MapLayer<float>& layer, const std::vector<EnemyAgent*>& enemies)
+{
+    for (int i = 0; i < static_cast<int>(enemies.size()); ++i)
+    {
+        enemy_field_of_view(layer, 120.0f, 1.5f, get_enemy_weight(), enemies[i]);
+    }
+}
+
+// TASK
+    // > removes given enemy from list
+    // > places given soldier in enemy position
+    // > calculates new layer to come from enemy removal
+    // > adds pathfinding cost to total cost
+void ProjectFour::EliminateEnemy(const EnemyAgent* e, const SoldierAgent* s, ProjectFour::MapState& state)
+{
+    // TODO: Call new pathfinding function that returns cost
+    //pather->compute_path_cost()
+
+    // find soldier
+    for (int i = 0; i < static_cast<int>(state.soldiers.size()); ++i)
+    {
+        // place soldier in enemy's position
+        if (state.soldiers[i] == s)
+        {
+            state.soldiers[i]->set_position(e->get_position());
+        }
+    }
+
+    // find enemy
+    for (int i = 0; i < static_cast<int>(state.enemies.size()); ++i)
+    {
+        // remove enemy from vector
+        if (state.enemies[i] == e)
+        {
+            state.enemies.erase(state.enemies.begin() + i);
+            break;
+        }
+    }
+
+    // calculate new enemy vision layer
+    ClearLayer(state.layer);
+    CalcEnemyVisionLayer(state.layer, state.enemies);
+};
