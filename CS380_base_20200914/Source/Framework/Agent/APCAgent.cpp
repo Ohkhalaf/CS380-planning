@@ -35,4 +35,6 @@ std::vector<Agent*> APCAgent::get_nearby_soldiers()
 	{
 		//soldiers[i]->get_position()
 	}
+
+	return soldiers;
 }

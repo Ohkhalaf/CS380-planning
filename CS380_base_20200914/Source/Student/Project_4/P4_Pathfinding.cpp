@@ -27,7 +27,7 @@ void AStarPather2::printSquare(const Square& s)
     std::cout << "Printing Square...\n";
 
     // Parent's Row and Col
-    if (s.xylist & PARENT)
+    if (s.parentXY.row != -1 && s.parentXY.col != -1)
     {
         std::cout << "Has parent\n";
     }
@@ -35,15 +35,15 @@ void AStarPather2::printSquare(const Square& s)
     {
         std::cout << "Has no parent\n";
     }
-    std::cout << "  Row: " << ((s.xylist & ROW) >> 8) << std::endl;
-    std::cout << "  Col: " << ((s.xylist & COL) >> 2) << std::endl;
+    std::cout << "  Row: " << s.parentXY.row << std::endl;
+    std::cout << "  Col: " << s.parentXY.col << std::endl;
 
     // Lists
-    if (s.xylist & OPEN)
+    if (s.state == SS_OPEN || s.state == SS_RAISE || s.state == SS_LOWER)
     {
         std::cout << "On the Open List\n";
     }
-    else if (s.xylist & CLOSED)
+    else if (s.state == SS_CLOSED)
     {
         std::cout << "On the Closed List\n";
     }
@@ -53,53 +53,34 @@ void AStarPather2::printSquare(const Square& s)
     }
 
     // COSTS
-    std::cout << "  Heuestric cost: " << s.cost << std::endl;
-    std::cout << "  Given cost: " << s.given << std::endl;
+    std::cout << "  Minimum cost: " << s.mincost << std::endl;
+    std::cout << "  Current cost: " << s.curcost << std::endl;
 }
 
 // builds the path to the goal
 void AStarPather2::buildPath(const Square& goal, PathRequest& request)
 {
     // allocate memory first off
-    pathstack.reserve(static_cast<int>(floor(goal.given)));
+    pathstack.reserve(static_cast<int>(floor(goal.curcost)));
 
     // add the goal world coordinates
-    pathstack.push_back(terrain->get_world_position(terrain->get_grid_position(request.goal)));
+    pathstack.push_back(terrain->get_world_position(terrain->get_grid_position(request.start)));
 
     // RUBBERBANDING
-    if (request.settings.rubberBanding)
+    // no rubberbanding, build path as is
+    XY parent = goal.parentXY;
+
+    // while the next square has a parent
+    while (parent.row != -1)
     {
-        // Only add needed nodes to define path
-        rubberBand(goal, request);
+        // add square to the path
+        pathstack.push_back(terrain->get_world_position(getRow(parent), getCol(parent)));
 
-        if (request.settings.smoothing)
-        {
-            // Add new points for smoothing
-            rubberToSmooth();
-        }
-    }
-    else
-    {
-        // no rubberbanding, build path as is
-        XY parent = goal.xylist;
-
-        // while the next square has a parent
-        while (parent & PARENT)
-        {
-            // add square to the path
-            pathstack.push_back(terrain->get_world_position(getRow(parent), getCol(parent)));
-
-            // get next square
-            parent = getSquare(getRow(parent), getCol(parent)).xylist;
-        }
+        // get next square
+        parent = getSquare(getRow(parent), getCol(parent)).parentXY;
     }
 
-    // SMOOTHING (Catmull-Rom Spline)
-    if (request.settings.smoothing)
-    {
-        smoothPath();
-    }
-
+    std::reverse(pathstack.begin(), pathstack.end());
     // pop off the complete path
     while (!pathstack.empty())
     {
@@ -111,47 +92,47 @@ void AStarPather2::buildPath(const Square& goal, PathRequest& request)
 // Skip unneccesary middle nodes in the path
 void AStarPather2::rubberBand(const Square& goal, PathRequest& request)
 {
-    // Take at most three squares into account
-    XY first, mid, last;
-    first = 0;
-    compactPos(first, terrain->get_grid_position(request.goal));
-
-    // if there is another square besides the goal
-    if (goal.xylist & PARENT)
-    { 
-        mid = goal.xylist;
-    }
-    else 
-    { 
-        return; // done here, no need to skip nodes
-    }
-
-    // if there is another square after that
-    // start the loop
-    while (mid & PARENT)
-    {
-        last = getSquare(getRow(mid), getCol(mid)).xylist;
-
-        // check the rectangle of squares on the grid for any walls
-        GridPos a, b;
-        unpackPos(first, a);
-        unpackPos(last, b);
-        if (wallsInRect(a, b))
-        {
-            // this node cannot be skipped
-            // add to path
-            pathstack.push_back(terrain->get_world_position(getRow(mid), getCol(mid)));
-
-            // set up next run
-            first = mid;
-        }
-
-        // go to next node
-        mid = last;
-    }
-
-    // add the last node (should be the starting player position)
-    pathstack.push_back(terrain->get_world_position(getRow(mid), getCol(mid)));
+  //// Take at most three squares into account
+  //XY first, mid, last;
+  //first = 0;
+  //compactPos(first, terrain->get_grid_position(request.goal));
+  //
+  //// if there is another square besides the goal
+  //if (goal.parentXY & PARENT)
+  //{ 
+  //    mid = goal.parentXY;
+  //}
+  //else 
+  //{ 
+  //    return; // done here, no need to skip nodes
+  //}
+  //
+  //// if there is another square after that
+  //// start the loop
+  //while (mid & PARENT)
+  //{
+  //    last = getSquare(getRow(mid), getCol(mid)).parentXY;
+  //
+  //    // check the rectangle of squares on the grid for any walls
+  //    GridPos a, b;
+  //    unpackPos(first, a);
+  //    unpackPos(last, b);
+  //    if (wallsInRect(a, b))
+  //    {
+  //        // this node cannot be skipped
+  //        // add to path
+  //        pathstack.push_back(terrain->get_world_position(getRow(mid), getCol(mid)));
+  //
+  //        // set up next run
+  //        first = mid;
+  //    }
+  //
+  //    // go to next node
+  //    mid = last;
+  //}
+  //
+  //// add the last node (should be the starting player position)
+  //pathstack.push_back(terrain->get_world_position(getRow(mid), getCol(mid)));
 }
 
 // return false if there are no walls in the given rectangle, true otherwise
@@ -266,9 +247,11 @@ void AStarPather2::clearData()
     {
         for (int c = 0; c < terrain->get_map_width(); ++c)
         {
-            grid[r][c].xylist = 0;
-            grid[r][c].cost = 0.0f;
-            grid[r][c].given = 0.0f;
+            grid[r][c].parentXY.col = -1;
+            grid[r][c].parentXY.row = -1;
+            grid[r][c].mincost = 0.0f;
+            grid[r][c].curcost = 0.0f;
+            grid[r][c].state = SS_NEW;
         }
     }
     // OPENLIST CHANGES: openlist.clear();
@@ -310,6 +293,59 @@ void AStarPather2::shutdown()
     clearData();
 }
 
+void AStarPather2::expand(GridPos centertile)
+{
+    Square& centerSquare = grid[centertile.row][centertile.col];
+    for (int col = -1; col <= 1; col++)
+    {
+        for (int row = -1; row <= 1; row++)
+        {
+            if (!(col || row)) //if this is the center tile
+            {
+                continue;
+            }
+            GridPos neighbour = centertile;
+            neighbour.col += col;
+            neighbour.row += row;
+            if (!terrain->is_valid_grid_position(neighbour.row, neighbour.col))
+            {
+                continue;
+            }
+            GridPos parentPos;
+            Square& neighboursquare = grid[neighbour.row][neighbour.col];
+            float distancetoNeighbour = (col && row) ? 1.4f : 1.0f; // if this is diagonal set distance to 1.4 else 1 
+            unpackPos(neighboursquare.parentXY, parentPos);
+            if (
+                (neighboursquare.state == SS_NEW) || //if it hasn't been on the open list
+                (parentPos == centertile && (neighboursquare.curcost != (centerSquare.curcost + distancetoNeighbour))) || //or the cost isn't correct in the node
+                (parentPos != centertile && (neighboursquare.curcost > (centerSquare.curcost + distancetoNeighbour))) // or we found a cheaper parent
+                )
+            {
+                compactPos(neighboursquare.parentXY, centertile);
+                //TODO : MAKE FUNCTION FOR "INSERT"
+                //if the new cost is cheaper than the minimum set it else just set the curcost
+                if (!(neighboursquare.state == SS_NEW))
+                {
+                    neighboursquare.mincost = (centerSquare.curcost + distancetoNeighbour) > neighboursquare.curcost ? neighboursquare.curcost : (centerSquare.curcost + distancetoNeighbour);
+                    neighboursquare.curcost = centerSquare.curcost + distancetoNeighbour;
+                }
+                else
+                {
+                    neighboursquare.mincost = centerSquare.curcost + distancetoNeighbour;
+                    neighboursquare.curcost = centerSquare.curcost + distancetoNeighbour;
+                }
+                XY neighbourXY;
+                compactPos(neighbourXY, neighbour);
+                insertSortList(neighboursquare, neighbourXY);
+                neighboursquare.state = SS_OPEN;
+            }
+            
+        }
+    }
+
+}
+
+
 PathResult AStarPather2::compute_path(PathRequest &request)
 {
     /*
@@ -347,8 +383,8 @@ PathResult AStarPather2::compute_path(PathRequest &request)
     // WRITE YOUR CODE HERE
 
     // get starting and ending position
-    GridPos start = terrain->get_grid_position(request.start);
-    GridPos goal = terrain->get_grid_position(request.goal);
+    GridPos goal = terrain->get_grid_position(request.start);
+    GridPos start = terrain->get_grid_position(request.goal);
 
     if (request.newRequest)
     {   
@@ -363,11 +399,12 @@ PathResult AStarPather2::compute_path(PathRequest &request)
 
         // push starting node into the open list
         Square& begin = getSquare(start);
-        begin.xylist = OPEN | ((start.row << 8) & ROW) | ((start.col << 2) & COL);
-        // OPENLIST CHANGES: openlist.push_back(begin.xylist);
-        openlist[ol_size] = begin.xylist;
+        begin.state = AStarPather2::SS_OPEN;
+        begin.parentXY.row = -1;
+        begin.parentXY.col = -1;
+        // OPENLIST CHANGES: openlist.push_back(begin.parentXY);
+        openlist[ol_size] = start;
         ++ol_size;
-        prev_cheapest = 0;
     }
 
 
@@ -381,8 +418,8 @@ PathResult AStarPather2::compute_path(PathRequest &request)
         //bucketSort();
         unpackPos(openlist[ol_size - 1], pos); // OPENLIST CHANGES:openlist.back(), pos);
         Square& cheapest = getSquare(pos);
-        prev_cheapest = cheapest.cost;
-        unpackPos(cheapest.xylist, prev);
+
+        unpackPos(cheapest.parentXY, prev);
         --ol_size; // OPENLIST CHANGES:openlist.pop_back();
 
         // check if this is the goal
@@ -399,12 +436,13 @@ PathResult AStarPather2::compute_path(PathRequest &request)
         }
 
         /* Get all children */
-        evaluateChildren(cheapest, pos, prev, goal, request);
+        //evaluateChildren(cheapest, pos, prev, goal, request);
 
-        // remove from open list
-        cheapest.xylist ^= OPEN;
-        // place parent on closed list
-        cheapest.xylist |= CLOSED;
+        //for D* swap to expand()
+        expand(pos);
+
+        // place on closed list
+        cheapest.state = SS_CLOSED;
         if (request.settings.debugColoring)
         {
             terrain->set_color(pos, Colors::Orange);
@@ -421,115 +459,6 @@ PathResult AStarPather2::compute_path(PathRequest &request)
     clearData();
     return PathResult::IMPOSSIBLE;
 }
-
-
-float AStarPather2::compute_path_cost(PathRequest& request)
-{
-    /*
-        This is where you handle pathing requests, each request has several fields:
-
-        start/goal - start and goal world positions
-        path - where you will build the path upon completion, path should be
-            start to goal, not goal to start
-        heuristic - which heuristic calculation to use
-        weight - the heuristic weight to be applied
-        newRequest - whether this is the first request for this path, should generally
-            be true, unless single step is on
-
-        smoothing - whether to apply smoothing to the path
-        rubberBanding - whether to apply rubber banding
-        singleStep - whether to perform only a single A* step
-        debugColoring - whether to color the grid based on the A* state:
-            closed list nodes - yellow
-            open list nodes - blue
-
-            use terrain->set_color(row, col, Colors::YourColor);
-            also it can be helpful to temporarily use other colors for specific states
-            when you are testing your algorithms
-
-        method - which algorithm to use: A*, Floyd-Warshall, JPS+, or goal bounding,
-            will be A* generally, unless you implement extra credit features
-
-        The return values are:
-            PROCESSING - a path hasn't been found yet, should only be returned in
-                single step mode until a path is found
-            COMPLETE - a path to the goal was found and has been built in request.path
-            IMPOSSIBLE - a path from start to goal does not exist, do not add start position to path
-    */
-
-    // WRITE YOUR CODE HERE
-
-    // get starting and ending position
-    GridPos start = terrain->get_grid_position(request.start);
-    GridPos goal = terrain->get_grid_position(request.goal);
-
-    if (request.newRequest)
-    {
-        // color positions
-        if (request.settings.debugColoring)
-        {
-            terrain->set_color(start, Colors::Yellow);
-            terrain->set_color(goal, Colors::ForestGreen);
-        }
-
-        clearData();
-
-        // push starting node into the open list
-        Square& begin = getSquare(start);
-        begin.xylist = OPEN | ((start.row << 8) & ROW) | ((start.col << 2) & COL);
-        // OPENLIST CHANGES: openlist.push_back(begin.xylist);
-        openlist[ol_size] = begin.xylist;
-        ++ol_size;
-        prev_cheapest = 0;
-    }
-
-
-    GridPos pos;  // position on grid of cheapest node
-    GridPos prev; // position of the cheapest node's parent
-
-    // while the open list is not empty
-    while (ol_size != 0) // OPENLIST CHANGES:!openlist.empty())
-    {
-        // pop the cheapest node off
-        //bucketSort();
-        unpackPos(openlist[ol_size - 1], pos); // OPENLIST CHANGES:openlist.back(), pos);
-        Square& cheapest = getSquare(pos);
-        prev_cheapest = cheapest.cost;
-        unpackPos(cheapest.xylist, prev);
-        --ol_size; // OPENLIST CHANGES:openlist.pop_back();
-
-        // check if this is the goal
-        if (pos == goal)
-        {
-            // GOAL FOUND
-            if (request.settings.debugColoring)
-            {
-                terrain->set_color(goal, Colors::Red);
-            }
-            float finalCost = cheapest.cost;
-            buildPath(cheapest, request);
-            clearData();
-            return finalCost;
-        }
-
-        /* Get all children */
-        evaluateChildren(cheapest, pos, prev, goal, request);
-
-        // remove from open list
-        cheapest.xylist ^= OPEN;
-        // place parent on closed list
-        cheapest.xylist |= CLOSED;
-        if (request.settings.debugColoring)
-        {
-            terrain->set_color(pos, Colors::Orange);
-        }
-    }
-
-    // open list was empty, no path found
-    clearData();
-    return -1;
-}
-
 
 // checks to see if grid position is not out of bounds, not a wall, and not the way back
 // DOES NO CHECKING RESTRICTED DIAGONAL MOVEMENT NEAR WALLS
@@ -611,7 +540,9 @@ void AStarPather2::computeCost(const Square& parent, GridPos parent_pos, const i
 {
     // get reference to Square
     Square& child = getSquare(row, col);
-    XY child_xy = 0;
+    XY child_xy;
+    child_xy.col = -1;
+    child_xy.row = -1;
     compactPos(child_xy, row, col);
     GridPos child_pos;
     child_pos.row = row;
@@ -620,21 +551,21 @@ void AStarPather2::computeCost(const Square& parent, GridPos parent_pos, const i
     /* Compute Cost */
 
     // if we are looking at a node that was already on the open/closed list
-    if ((child.xylist & OPEN) || (child.xylist & CLOSED))
+    if (!child.state == SS_NEW)
     {
         // Given Cost plus enemy vision layer
-        float given = parent.given + dist;
+        float given = parent.mincost + dist;
         given += terrain->enemyVisionLayer.get_value(child_pos);
 
         // Heuristic Cost
         // TODO - should be its own function
         float total = given + CalcHeuristicCost(row, col, goal.row, goal.col, request);
 
-        if (child.cost > total)
+        if (child.curcost > total)
         {
             ///* CHANGES: NEW SORT
             //TODO - temp
-            if (child.xylist & OPEN)
+            if (child.state == SS_OPEN)
             {
                 for (unsigned int i = 0; i < ol_size; ++i)
                 {
@@ -654,16 +585,14 @@ void AStarPather2::computeCost(const Square& parent, GridPos parent_pos, const i
             //*/
 
             // update node
-            child.xylist = 0;
-            child.xylist |= PARENT;
-            compactPos(child.xylist, parent_pos);
-            child.xylist |= OPEN;
+            child.parentXY = parent_pos;
+            child.state = SS_OPEN;
             if (request.settings.debugColoring)
             {
                 terrain->set_color(child_pos, Colors::Cyan);
             }
-            child.given = given;
-            child.cost = total;
+            child.mincost = given;
+            child.curcost = total;
 
             // TODO - temp
             // CHANGES: NEW SORT 
@@ -673,19 +602,18 @@ void AStarPather2::computeCost(const Square& parent, GridPos parent_pos, const i
     else // looking at a new node
     {
         // Set Parent
-        child.xylist |= PARENT;
-        compactPos(child.xylist, parent_pos);
+        child.parentXY = parent_pos;
 
         // Given Cost and weight from enemy vision layer
-        child.given = parent.given + dist;
-        child.given += terrain->enemyVisionLayer.get_value(child_pos);
+        child.mincost = parent.mincost + dist;
+        child.mincost += terrain->enemyVisionLayer.get_value(child_pos);
 
         // Heuristic Cost
         // TODO - should be its own function
-        child.cost = child.given + CalcHeuristicCost(row, col, goal.row, goal.col, request);
+        child.curcost = child.mincost + CalcHeuristicCost(row, col, goal.row, goal.col, request);
 
         // place on open list
-        child.xylist |= OPEN;
+        child.state = SS_OPEN;
         if (request.settings.debugColoring)
         {
             terrain->set_color(child_pos, Colors::Cyan);
@@ -709,7 +637,7 @@ void AStarPather2::insertSortList(const Square& node, XY child_xy)
         return;
     }
 
-    if (getSquare(openlist[ol_size - 1]).cost >= node.cost)
+    if (getSquare(openlist[ol_size - 1]).mincost >= node.mincost)
     {
         openlist[ol_size] = child_xy;
         ++ol_size;
@@ -718,7 +646,7 @@ void AStarPather2::insertSortList(const Square& node, XY child_xy)
 
     for (int i = 0; i < static_cast<int>(ol_size); ++i)
     {
-        if (getSquare(openlist[i]).cost < node.cost)
+        if (getSquare(openlist[i]).mincost < node.mincost)
         {
             for (int j = static_cast<int>(ol_size) - 1; j >= i; --j)
             {
@@ -789,89 +717,4 @@ float AStarPather2::H_Chebyshev(const int& x1, const int& y1, const int& x2, con
     {
         return static_cast<float>(dy);
     }
-}
-
-// bucket then use insertion sort
-void AStarPather2::bucketSort()
-{
-    // array small enough to just use insertion sort
-    if (ol_size < BARRIER)
-    {
-        // for each node
-        for (int i = 1; i < static_cast<int>(ol_size); ++i)
-        {
-            // if a node is out of place, move it back until it is sorted
-            for (int j = i; j > 0 && getSquare(openlist[j]).cost > getSquare(openlist[j - 1]).cost; --j)
-            {
-                std::swap(openlist[j], openlist[j-1]);
-            }
-        }
-        return;
-    }
-
-    // sort into buckets first
-    float prev_highest = getSquare(openlist[0]).cost;
-    float range = (prev_highest - prev_cheapest) / (MAX_BUCK - 2);
-
-    // clear values in buckets
-    std::memset(buck_count, 0, sizeof(unsigned int) * MAX_BUCK);
-
-    // for each node in the openlist
-    for (unsigned int i = 0; i < ol_size; ++i)
-    {
-        // get cost
-        float cost = getSquare(openlist[i]).cost;
-
-        // find which bucket to place it in
-        int b = MAX_BUCK - 1;
-        if (cost > prev_cheapest && cost < prev_highest)
-        {
-            b = static_cast<int>((cost - prev_cheapest) / range) + 1;
-        }
-        else if (cost <= prev_cheapest)
-        {
-            b = 0;
-        }
-
-        // just place it in the bucket
-        buckets[b][buck_count[b]] = openlist[i];
-        ++buck_count[b];
-    } // done with each node in the open list
-
-    // use insertion sort inside each bucket then place it back into the openlist
-    int i = ol_size - 1;
-    for (int b = 0; b < MAX_BUCK; ++b)
-    {
-        // insertion sort the bucket
-        for (int i = 1; i < static_cast<int>(buck_count[b]); ++i)
-        {
-            // if a node is out of place, move it back until it is sorted
-            for (int j = i; j > 0 && getSquare(buckets[b][j]).cost > getSquare(buckets[b][j - 1]).cost; --j)
-            {
-                std::swap(buckets[b][j], buckets[b][j - 1]);
-            }
-        }
-
-        // place back
-        for (int j = static_cast<int>(buck_count[b]) - 1; j >= 0; --j) // for each item in bucket from cheapest to highest
-        {
-            // place in the openlist starting from the end and going towards the front
-            openlist[i] = buckets[b][j];
-            --i;
-        }
-    }
-
-    /*
-    // piece back together
-    int i = ol_size - 1;
-    for (int b = 0; b < MAX_BUCK; ++b) // for each bucket from smallest values to largest values
-    {
-        for (int j = static_cast<int>(buck_count[b]) - 1; j >= 0; --j) // for each item in bucket from cheapest to highest
-        {
-            // place in the openlist starting from the end and going towards the front
-            openlist[i] = buckets[b][j];
-            --i;
-        }
-    }
-    */
 }

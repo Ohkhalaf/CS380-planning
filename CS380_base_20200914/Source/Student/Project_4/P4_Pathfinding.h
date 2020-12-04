@@ -64,7 +64,7 @@ public:
 
 private:
 
-    typedef unsigned short int XY;
+    typedef GridPos XY;
     
     float enemyWeight = 5.0f;
 
@@ -80,20 +80,31 @@ private:
     // Buckets
     XY buckets[MAX_BUCK][MAX_SIZE];
     unsigned int buck_count[MAX_BUCK];
-    float prev_cheapest;
 
     // Path Stack
     // TODO - const int MAX_PATH_LENGTH = 1600;
     std::vector<Vec3> pathstack;
 
+    enum SquareState
+    {
+        SS_NEW,
+        SS_OPEN,
+        SS_RAISE,
+        SS_LOWER,
+        SS_CLOSED
+    };
+
+
     // 12 bytes total
     struct Square
     {
-        XY xylist = 0; // 2 bytes
+        XY parentXY = { 0,0 }; // 2 bytes
         //unsigned short int next   = 0; // 2 bytes
-        float given = 0.0f;            // 4 bytes
-        float cost = 0.0f;            // 4 bytes
+        float mincost = 0.0f;            // 4 bytes
+        float curcost = 0.0f;            // 4 bytes
+        SquareState state = SS_NEW;
     };
+
 
     // reserve maximum space required
     std::vector<std::vector<Square>> grid =
@@ -103,12 +114,12 @@ private:
 
     int getRow(const XY& xy)
     {
-        return (xy & ROW) >> 8;
+        return xy.row;
     }
 
     int getCol(const XY& xy)
     {
-        return (xy & COL) >> 2;
+        return xy.col;
     }
 
     void unpackPos(const XY& xy, GridPos& pos)
@@ -121,21 +132,16 @@ private:
     {
         // TODO - Check if row or col are positive
         //      - Reset ROW and COL values in xy to zeros
-        xy |= (pos.row << 8) & ROW;
-        xy |= (pos.col << 2) & COL;
+        xy.row = pos.row;
+        xy.col = pos.col;
     }
 
     void compactPos(XY& xy, int row, int col)
     {
         // TODO - Check if row or col are positive
         //      - Reset ROW and COL values in xy to zeros
-        xy |= (row << 8) & ROW;
-        xy |= (col << 2) & COL;
-    }
-
-    Square& getSquare(const XY& xy)
-    {
-        return grid[getRow(xy)][getCol(xy)];
+        xy.row = row;
+        xy.col = col;
     }
 
     Square& getSquare(const GridPos& pos)
@@ -189,6 +195,8 @@ private:
     void rubberToSmooth();
     // smooth the path found with Catmull-Rom Spline
     void smoothPath();
+    //to expand the area we're looking at
+    void expand(GridPos);
 
     protected:
         std::wstring enemyWeightText;
