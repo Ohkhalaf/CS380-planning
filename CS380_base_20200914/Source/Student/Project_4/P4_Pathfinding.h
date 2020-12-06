@@ -34,7 +34,8 @@ public:
     bool initialize();
     void shutdown();
     PathResult compute_path(PathRequest &request);
-    float compute_path_cost(PathRequest& request);
+    //float compute_path_cost(PathRequest& request);
+    void update_path(PathRequest& request);
     /* ************************************************** */
 
     /*
@@ -61,29 +62,7 @@ public:
         return enemyWeightText;
     }
 
-
-private:
-
     typedef GridPos XY;
-    
-    float enemyWeight = 5.0f;
-
-
-    const float ONE = 1.0f;                  // straight cost
-    const float SQUAREROOT2 = static_cast<float>(sqrt(2));//1.4142135624f; // diagonal cost
-
-    // Open List
-    // std::vector<XY> openlist;
-    XY openlist[MAX_SIZE];
-    unsigned int ol_size;
-
-    // Buckets
-    XY buckets[MAX_BUCK][MAX_SIZE];
-    unsigned int buck_count[MAX_BUCK];
-
-    // Path Stack
-    // TODO - const int MAX_PATH_LENGTH = 1600;
-    std::vector<Vec3> pathstack;
 
     enum SquareState
     {
@@ -103,8 +82,40 @@ private:
         float mincost = 0.0f;            // 4 bytes
         float curcost = 0.0f;            // 4 bytes
         SquareState state = SS_NEW;
+        bool isDirty = true;
     };
 
+    Square& getSquare(const GridPos& pos)
+    {
+        return grid[pos.row][pos.col];
+    }
+
+    Square& getSquare(const int& row, const int& col)
+    {
+        return grid[row][col];
+    }
+
+
+private:
+    
+    float enemyWeight = 5.0f;
+
+
+    const float ONE = 1.0f;                  // straight cost
+    const float SQUAREROOT2 = static_cast<float>(sqrt(2));//1.4142135624f; // diagonal cost
+
+    // Open List
+    // std::vector<XY> openlist;
+    XY openlist[MAX_SIZE];
+    unsigned int ol_size;
+
+    // Buckets
+    XY buckets[MAX_BUCK][MAX_SIZE];
+    unsigned int buck_count[MAX_BUCK];
+
+    // Path Stack
+    // TODO - const int MAX_PATH_LENGTH = 1600;
+    std::vector<Vec3> pathstack;
 
     // reserve maximum space required
     std::vector<std::vector<Square>> grid =
@@ -142,16 +153,6 @@ private:
         //      - Reset ROW and COL values in xy to zeros
         xy.row = row;
         xy.col = col;
-    }
-
-    Square& getSquare(const GridPos& pos)
-    {
-        return grid[pos.row][pos.col];
-    }
-
-    Square& getSquare(const int& row, const int& col)
-    {
-        return grid[row][col];
     }
 
     // checks to see if grid position is not out of bounds, not a wall, and not the way back
@@ -196,7 +197,13 @@ private:
     // smooth the path found with Catmull-Rom Spline
     void smoothPath();
     //to expand the area we're looking at
-    void expand(GridPos);
+    void expand(GridPos, const PathRequest& request);
+
+    // D*: Inserts all neighbors of a centertile as well as centertile
+    void AddAllNeighbours(GridPos centertile, const PathRequest& request);
+
+    // D*: Insert
+    void Insert(GridPos pos, float new_cost, const PathRequest& request);
 
     protected:
         std::wstring enemyWeightText;

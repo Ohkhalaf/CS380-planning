@@ -80,6 +80,8 @@ protected:
     PathRequest request;
     PathRequest buffer;
     bool computingPath;
+    bool updatingPath;
+    bool hasPath;
     Movement movement;
     // we can statically build all other display text but weight
     std::wstring heuristicWeightText;

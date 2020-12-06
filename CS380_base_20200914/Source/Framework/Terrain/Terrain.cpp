@@ -38,7 +38,7 @@ Color Terrain::seekDetectionColor = Colors::Aquamarine;
 float Terrain::maxLayerAlpha = 0.9f;
 const float Terrain::mapSizeInWorld = 100.0f;
 // OUR PROJECT
-Color Terrain::enemyVisionColor = Colors::CadetBlue;
+Color Terrain::enemyVisionColor = DirectX::XMVECTORF32({ { { 0.372549027f, 0.619607866f, 0.627451003f, 1.00000000f } } }); // CADET BLUE
 
 float globalScalar = 1.0f;
 

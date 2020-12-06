@@ -196,9 +196,10 @@ void ProjectFour::update()
         if (i->get_active())
         {
             i->logic_tick();
-            enemy_field_of_view(terrain->enemyVisionLayer, 120.0f, 1.5f, get_enemy_weight(), i);
         }
     }
+
+    CalcEnemyVisionLayer(terrain->enemyVisionLayer);
 
     agents->update(deltaTime);
 
@@ -508,9 +509,31 @@ void ProjectFour::ClearLayer(MapLayer<float>& layer)
     }
 }
 
+void CompareLayers(const MapLayer<float>& layer1, const MapLayer<float>& layer2)
+{
+    for (int row = 0; row < terrain->get_map_height(); ++row)
+    {
+        for (int col = 0; col < terrain->get_map_width(); ++col)
+        {
+            if (layer1.get_value(row, col) != layer2.get_value(row, col))
+            {
+                AStarPather2::Square& affected = pather->getSquare(row, col);
+                affected.isDirty = true;
+
+                // TODO: I think we need to do this?                          <---------------------------- I'M NOT SURE
+                // MAYBE THIS IS WHERE WE SET RAISED VERSUS LOWERED STATE????
+                affected.curcost -= layer1.get_value(row, col);
+                affected.curcost += layer2.get_value(row, col);
+            }
+        }
+    }
+}
+
 // gets the vision of all given enemies onto a layer
 void ProjectFour::CalcEnemyVisionLayer(MapLayer<float>& layer)
 {
+    MapLayer old_layer = layer;
+
     for (int i = 0; i < static_cast<int>(enemy.size()); ++i)
     {
         if (enemy[i]->get_active())
@@ -518,6 +541,9 @@ void ProjectFour::CalcEnemyVisionLayer(MapLayer<float>& layer)
             enemy_field_of_view(layer, 120.0f, 1.5f, get_enemy_weight(), enemy[i]);
         }
     }
+
+    // check for changes
+    CompareLayers(old_layer, layer);
 }
 
 // TASK

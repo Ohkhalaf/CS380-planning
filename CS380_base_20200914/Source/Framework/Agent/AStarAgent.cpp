@@ -23,7 +23,7 @@ std::set<Method> availableMethods;
 
 const Color pathColor(1.0f, 0.0f, 0.0f, 1.0f);
 
-AStarAgent::AStarAgent(size_t id) : Agent(patherTypeName, id), computingPath(false), movement(Movement::WALK)
+AStarAgent::AStarAgent(size_t id) : Agent(patherTypeName, id), computingPath(false), updatingPath(false), hasPath(false), movement(Movement::WALK)
 {
     buffer.settings.heuristic = Heuristic::OCTILE;
     buffer.settings.weight = 1.0f;
@@ -90,6 +90,11 @@ void AStarAgent::update(float dt)
         set_position(terrain->get_world_position(terrain->get_grid_position(request.goal)));
         break;
     }
+
+    if (!computingPath && hasPath)
+    {
+        pather->update_path(request);
+    }
 }
 
 void AStarAgent::path_to(const Vec3 &point, bool timed)
@@ -104,6 +109,7 @@ void AStarAgent::path_to(const Vec3 &point, bool timed)
         request.goal = point;
         request.settings = buffer.settings;
         request.newRequest = true;
+        hasPath = false;
 
         if (movement != Movement::TELEPORT)
         {
@@ -305,6 +311,7 @@ void AStarAgent::process_request()
     switch (result)
     {
     case PathResult::COMPLETE:
+        hasPath = true;
     case PathResult::IMPOSSIBLE:
         computingPath = false;
         Messenger::send_message(Messages::PATH_REQUEST_END);
@@ -319,5 +326,6 @@ void AStarAgent::on_map_change()
 {
     this->set_scaling(this->get_scaling());
     computingPath = false;
+    hasPath = false;
     request.path.clear();
 }

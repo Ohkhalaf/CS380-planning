@@ -5,6 +5,8 @@
 
 #define ENEMY_VISION_WEIGHT 5.0f
 
+#define RAISED_COST 5000.0f
+
 #pragma region Extra Credit
 bool ProjectFour::implemented_floyd_warshall()
 {
@@ -293,7 +295,46 @@ void AStarPather2::shutdown()
     clearData();
 }
 
-void AStarPather2::expand(GridPos centertile)
+// NOTE: ALSO ADDS CENTER SQUARE
+void AStarPather2::AddAllNeighbours(GridPos centertile, const PathRequest& request)
+{
+    for (int col = -1; col <= 1; col++)
+    {
+        for (int row = -1; row <= 1; row++)
+        {
+            GridPos neighbour = centertile;
+            neighbour.col += col;
+            neighbour.row += row;
+            if (!terrain->is_valid_grid_position(neighbour.row, neighbour.col))
+            {
+                continue;
+            }
+            if (terrain->is_wall(neighbour.row, neighbour.col))
+            {
+                continue;
+            }
+
+            /*
+            // add neigbouring node to openlist
+            Square& neighboursquare = grid[neighbour.row][neighbour.col];
+            XY neighbourXY;
+            compactPos(neighbourXY, neighbour);
+            insertSortList(neighboursquare, neighbourXY);
+            neighboursquare.state = SS_OPEN;
+            if (request.settings.debugColoring)
+            {
+                if (row || col)
+                {
+                    terrain->set_color(neighbour, Colors::Cyan);
+                }
+            }
+            */
+            Insert(neighbour, getSquare(neighbour).curcost, request);
+        }
+    }
+}
+
+void AStarPather2::expand(GridPos centertile, const PathRequest& request)
 {
     Square& centerSquare = grid[centertile.row][centertile.col];
     for (int col = -1; col <= 1; col++)
@@ -311,40 +352,71 @@ void AStarPather2::expand(GridPos centertile)
             {
                 continue;
             }
+            if (terrain->is_wall(neighbour.row, neighbour.col))
+            {
+                continue;
+            }
+            // calc cost
             GridPos parentPos;
             Square& neighboursquare = grid[neighbour.row][neighbour.col];
             float distancetoNeighbour = (col && row) ? 1.4f : 1.0f; // if this is diagonal set distance to 1.4 else 1 
             unpackPos(neighboursquare.parentXY, parentPos);
+            
+            // calc total cost to reach this node from the center square, enemy weight included
+            float total_cost = centerSquare.curcost + distancetoNeighbour + terrain->enemyVisionLayer.get_value(neighbour);
+
             if (
                 (neighboursquare.state == SS_NEW) || //if it hasn't been on the open list
-                (parentPos == centertile && (neighboursquare.curcost != (centerSquare.curcost + distancetoNeighbour))) || //or the cost isn't correct in the node
-                (parentPos != centertile && (neighboursquare.curcost > (centerSquare.curcost + distancetoNeighbour))) // or we found a cheaper parent
+                (parentPos == centertile && (neighboursquare.curcost != total_cost)) || //or the cost isn't correct in the node
+                (parentPos != centertile && (neighboursquare.curcost > total_cost)) // or we found a cheaper parent
                 )
             {
-                compactPos(neighboursquare.parentXY, centertile);
-                //TODO : MAKE FUNCTION FOR "INSERT"
-                //if the new cost is cheaper than the minimum set it else just set the curcost
-                if (!(neighboursquare.state == SS_NEW))
-                {
-                    neighboursquare.mincost = (centerSquare.curcost + distancetoNeighbour) > neighboursquare.curcost ? neighboursquare.curcost : (centerSquare.curcost + distancetoNeighbour);
-                    neighboursquare.curcost = centerSquare.curcost + distancetoNeighbour;
-                }
-                else
-                {
-                    neighboursquare.mincost = centerSquare.curcost + distancetoNeighbour;
-                    neighboursquare.curcost = centerSquare.curcost + distancetoNeighbour;
-                }
-                XY neighbourXY;
-                compactPos(neighbourXY, neighbour);
-                insertSortList(neighboursquare, neighbourXY);
-                neighboursquare.state = SS_OPEN;
+                compactPos(neighboursquare.parentXY, centertile); // assign new parent
+                // add to openlist
+                Insert(neighbour, total_cost, request);
             }
-            
         }
     }
 
 }
 
+// D*: Insert
+void AStarPather2::Insert(GridPos pos, float new_cost, const PathRequest& request)
+{
+    Square& node = getSquare(pos);
+
+    //if the new cost is cheaper than the minimum set it else just set the curcost
+    if (node.state != SS_NEW)
+    {
+        node.mincost = new_cost > node.curcost ? node.curcost : new_cost;
+        node.curcost = new_cost;
+
+        if (node.state == SS_CLOSED)
+        {
+            node.state = SS_OPEN;
+            if (request.settings.debugColoring)
+            {
+                terrain->set_color(pos, Colors::Cyan);
+            }
+        }
+    }
+    else
+    {
+        node.state = SS_OPEN; // apparently not stated?
+        node.mincost = new_cost;
+        node.curcost = new_cost;
+        if (request.settings.debugColoring)
+        {
+            terrain->set_color(pos, Colors::SeaGreen);
+        }
+    }
+
+    // add neigbouring node to openlist
+    insertSortList(node, pos);
+
+    // does this belong here? most likely.
+    node.isDirty = false;
+}
 
 PathResult AStarPather2::compute_path(PathRequest &request)
 {
@@ -397,14 +469,18 @@ PathResult AStarPather2::compute_path(PathRequest &request)
 
         clearData();
 
+        /*
         // push starting node into the open list
         Square& begin = getSquare(start);
         begin.state = AStarPather2::SS_OPEN;
         begin.parentXY.row = -1;
         begin.parentXY.col = -1;
+        begin.isDirty = false;
         // OPENLIST CHANGES: openlist.push_back(begin.parentXY);
         openlist[ol_size] = start;
         ++ol_size;
+        */
+        Insert(start, 0.0f, request);
     }
 
 
@@ -426,12 +502,14 @@ PathResult AStarPather2::compute_path(PathRequest &request)
         if (pos == goal)
         {
             // GOAL FOUND
+            expand(pos, request);
+            cheapest.state = SS_CLOSED;
             if (request.settings.debugColoring)
             {
                 terrain->set_color(goal, Colors::Red);
             }
             buildPath(cheapest, request);
-            clearData();
+            //clearData();
             return PathResult::COMPLETE;
         }
 
@@ -439,7 +517,7 @@ PathResult AStarPather2::compute_path(PathRequest &request)
         //evaluateChildren(cheapest, pos, prev, goal, request);
 
         //for D* swap to expand()
-        expand(pos);
+        expand(pos, request);
 
         // place on closed list
         cheapest.state = SS_CLOSED;
@@ -458,6 +536,115 @@ PathResult AStarPather2::compute_path(PathRequest &request)
     // open list was empty, no path found
     clearData();
     return PathResult::IMPOSSIBLE;
+}
+
+void AStarPather2::update_path(PathRequest& request)
+{
+    // need a copy of the built path in order to check for weight changes
+    std::list<Vec3> &path = request.path;
+
+    GridPos loc;
+    Square node;
+    bool changeFound = false;
+
+    // walk through the path
+    for (std::list<Vec3>::const_iterator it = path.begin(); it != path.end(); ++it)
+    {
+        loc = terrain->get_grid_position(*it);
+        node = getSquare(loc);
+        // if a square on the path has changed weight
+        if (node.isDirty)
+        {
+            // NOTE: Do we only do this if cost is now higher?
+            // what if it's actually lower than before?
+            node.curcost += RAISED_COST;
+
+            // insert dirty node and all it's neighbors
+            AddAllNeighbours(loc, request);
+
+            // changing color to signify raised
+            if (request.settings.debugColoring)
+            {
+                terrain->set_color(loc, Colors::IndianRed);
+            }
+
+            changeFound = true;
+            break;
+        }
+    }
+
+    // no changes to path
+    if (!changeFound) return;
+
+    Square& pathbreaker = node;
+
+    // path must be recalculated
+    GridPos pos;  // position on grid of cheapest node
+
+    // while the open list is not empty
+    while (ol_size != 0) // OPENLIST CHANGES:!openlist.empty())
+    {
+        // pop the cheapest node off
+        unpackPos(openlist[ol_size - 1], pos);
+        Square& cheapest = getSquare(pos);
+        --ol_size;
+
+        // if the next tile on the openlist is unessecary for the new path
+        if (pathbreaker.curcost < cheapest.mincost)
+        {
+            // PATH RESTRUCTURED
+            // build new path from original starting tile
+            buildPath(getSquare(terrain->get_grid_position(path.front())), request);
+            return;
+        }
+
+        // if this node did not change value
+        if (cheapest.mincost == cheapest.curcost)
+        {
+            expand(pos, request);
+        }
+        else if (cheapest.mincost < cheapest.curcost) // current cost is greater
+        {
+            // get all neighbors
+            for (int col = -1; col <= 1; col++)
+            {
+                for (int row = -1; row <= 1; row++)
+                {
+                    if (!(col || row)) //if this is the center tile
+                    {
+                        continue;
+                    }
+                    GridPos neighbour = pos;
+                    neighbour.col += col;
+                    neighbour.row += row;
+                    if (!terrain->is_valid_grid_position(neighbour.row, neighbour.col))
+                    {
+                        continue;
+                    }
+                    if (terrain->is_wall(neighbour.row, neighbour.col))
+                    {
+                        continue;
+                    }
+
+                    // neighbor is ready and valid
+                    Square neighSquare = getSquare(neighbour);
+                    float distancetoNeighbour = (col && row) ? 1.4f : 1.0f; // if this is diagonal set distance to 1.4 else 1 
+                    float total_cost = neighSquare.curcost + distancetoNeighbour + terrain->enemyVisionLayer.get_value(pos);
+
+                    // if this neighbour is a better parent now
+                    if (neighSquare.curcost <= neighSquare.mincost && cheapest.curcost > total_cost)
+                    {
+                        cheapest.parentXY = neighbour; // this is the new parent now
+                        cheapest.curcost = total_cost; // assign the new & less expensive cost
+                    }
+                }
+            }
+            // end of get all neighbors
+
+            // TODO: ???
+            expand(pos, request); // Is this right?
+        }
+    }
 }
 
 // checks to see if grid position is not out of bounds, not a wall, and not the way back
