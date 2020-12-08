@@ -104,6 +104,7 @@ private:
     PathTester tester;
     bool testRunning;
     bool spawnEnemy;
+    std::vector<float> old_layer;
 
     std::wstring analysisFrequencyText;
 

@@ -43,6 +43,8 @@ public:
     void toggle_enabled() { enabled = !enabled; }
 
     void for_each(std::function<void(T &)> op);
+
+    void my_populate_with_value(int height, int width, const T& value);
 private:
     container data;
     float yHeight;
@@ -64,8 +66,7 @@ private:
 
     void draw(MeshRenderer &instancer, const std::vector<std::vector<Vec3>> &positions);
     void draw_cell(MeshRenderer &instancer, size_t row, size_t col, const Vec3 &pos);
-
-    void populate_with_value(int height, int width, const T &value);
+    void populate_with_value(int height, int width, const T& value);
     void populate_with_data(const std::vector<std::vector<T>> &data);
 };
 
@@ -145,6 +146,17 @@ inline void MapLayer<T>::draw_cell(MeshRenderer &instancer, size_t row, size_t c
 
 template<typename T>
 inline void MapLayer<T>::populate_with_value(int inH, int inW, const T &value)
+{
+    data.resize(inW * inH);
+
+    height = inH;
+    width = inW;
+
+    std::fill(std::begin(data), std::end(data), value);
+}
+
+template<typename T>
+inline void MapLayer<T>::my_populate_with_value(int inH, int inW, const T& value)
 {
     data.resize(inW * inH);
 

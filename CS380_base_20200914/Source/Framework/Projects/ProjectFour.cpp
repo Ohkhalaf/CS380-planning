@@ -76,6 +76,8 @@ bool ProjectFour::initialize()
     // enable, show enemy vision layer
     terrain->enemyVisionLayer.set_enabled(true);
 
+    old_layer = std::vector<float>(40 * 40, 0.0f);
+
     return terrain->initialize() &&
         agents->initialize() &&
         ui->initialize() &&
@@ -89,11 +91,13 @@ bool ProjectFour::finalize()
     agent->set_color(Vec3(134/256.0f, 97/256.0f, 193/256.0f));
     tester.set_agent(agent);
 
+    /*
     enemy.push_back(agents->create_enemy_agent());
     enemy[0]->set_debug_coloring(false);
     enemy[0]->set_single_step(false);
     enemy[0]->set_color(Vec3(0.8f, 0.0f, 0.0f));
     enemy[0]->set_player(agent);
+    */
 
     // initialize the position text
     grid_pos_to_text2(GridPos { -1, -1 }, startPosText2);
@@ -461,6 +465,10 @@ void ProjectFour::enemy_field_of_view(MapLayer<float>& layer, float fovAngle, fl
     // normalize the viewing vector
     view_dir.Normalize();
 
+    //layer.set_value(grid_pos.row, grid_pos.col, occupancyValue);
+
+    // TEMP TODO
+    
     // for every cell in the layer
     for (int row = 0; row < terrain->get_map_height(); ++row)
     {
@@ -495,6 +503,7 @@ void ProjectFour::enemy_field_of_view(MapLayer<float>& layer, float fovAngle, fl
             }
         }
     }
+    
 }
 
 // clears out the given map layer
@@ -509,13 +518,13 @@ void ProjectFour::ClearLayer(MapLayer<float>& layer)
     }
 }
 
-void CompareLayers(const MapLayer<float>& layer1, const MapLayer<float>& layer2)
+void CompareLayers(const std::vector<float>& layer1, const MapLayer<float>& layer2)
 {
     for (int row = 0; row < terrain->get_map_height(); ++row)
     {
         for (int col = 0; col < terrain->get_map_width(); ++col)
         {
-            if (layer1.get_value(row, col) != layer2.get_value(row, col))
+            if (layer1[row * terrain->get_map_height() + col] != layer2.get_value(row, col))
             {
                 AStarPather2::Square& affected = pather->getSquare(row, col);
                 affected.isDirty = true;
@@ -524,7 +533,7 @@ void CompareLayers(const MapLayer<float>& layer1, const MapLayer<float>& layer2)
                 // MAYBE THIS IS WHERE WE SET RAISED VERSUS LOWERED STATE????
                 //affected.curcost -= layer1.get_value(row, col);
                 //affected.curcost += layer2.get_value(row, col);
-                affected.curcost += 5000.0f;
+                //affected.curcost += 5000.0f;
             }
         }
     }
@@ -533,8 +542,6 @@ void CompareLayers(const MapLayer<float>& layer1, const MapLayer<float>& layer2)
 // gets the vision of all given enemies onto a layer
 void ProjectFour::CalcEnemyVisionLayer(MapLayer<float>& layer)
 {
-    MapLayer old_layer = layer;
-
     for (int i = 0; i < static_cast<int>(enemy.size()); ++i)
     {
         if (enemy[i]->get_active())
@@ -545,6 +552,16 @@ void ProjectFour::CalcEnemyVisionLayer(MapLayer<float>& layer)
 
     // check for changes
     CompareLayers(old_layer, layer);
+
+    
+    for (int row = 0; row < terrain->get_map_height(); ++row)
+    {
+        for (int col = 0; col < terrain->get_map_width(); ++col)
+        {
+            old_layer[row * terrain->get_map_height() + col] = layer.get_value(row, col);
+        }
+    }
+    
 }
 
 // TASK

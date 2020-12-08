@@ -452,17 +452,20 @@ void AStarPather2::Insert(GridPos pos, float new_cost, const PathRequest& reques
     //if the new cost is cheaper than the minimum set it else just set the curcost
     if (node.state != SS_NEW)
     {
-        node.mincost = new_cost > node.curcost ? node.curcost : new_cost;
-        node.curcost = new_cost;
-
         if (node.state == SS_CLOSED)
         {
+            node.mincost = new_cost > node.curcost ? node.curcost : new_cost;
             //node.state = SS_OPEN;
             if (request.settings.debugColoring)
             {
                 terrain->set_color(pos, Colors::Cyan);
             }
         }
+        else if (node.state == SS_OPEN)
+        {
+            node.mincost = new_cost > node.mincost ? node.mincost : new_cost;
+        }
+        node.curcost = new_cost;
     }
     else
     {
@@ -612,23 +615,25 @@ void AStarPather2::update_path(PathRequest& request)
     std::list<Vec3> &path = request.path;
 
     GridPos loc;
-    Square node;
+    Square* node;
     bool changeFound = false;
 
     // walk through the path
-    for (std::list<Vec3>::const_iterator it = path.begin(); it != path.end(); ++it)
+    std::list<Vec3>::const_iterator ahead = path.begin();
+    std::list<Vec3>::const_iterator it = ahead++;
+    for (; ahead != path.end(); ++ahead)
     {
-        loc = terrain->get_grid_position(*it);
-        node = getSquare(loc);
+        loc = terrain->get_grid_position(*ahead);
+        node = &getSquare(loc);
         // if a square on the path has changed weight
-        if (node.isDirty)
+        if (node->isDirty)
         {
-            // NOTE: Do we only do this if cost is now higher?
-            // what if it's actually lower than before?
-            node.curcost += RAISED_COST;
-
             // insert dirty node and all it's neighbors
             AddAllNeighbours(loc, request);
+
+            // NOTE: Do we only do this if cost is now higher?
+            // what if it's actually lower than before?
+            node->curcost += RAISED_COST;
 
             // changing color to signify raised
             if (request.settings.debugColoring)
@@ -639,12 +644,13 @@ void AStarPather2::update_path(PathRequest& request)
             changeFound = true;
             break;
         }
+        it = ahead;
     }
 
     // no changes to path
     if (!changeFound) return;
 
-    Square& pathbreaker = node;
+    Square& pathbreaker = getSquare(terrain->get_grid_position(*it));
 
     // path must be recalculated
     GridPos pos;  // position on grid of cheapest node
@@ -704,7 +710,7 @@ void AStarPather2::update_path(PathRequest& request)
                     }
 
                     // neighbor is ready and valid
-                    Square neighSquare = getSquare(neighbour);
+                    Square& neighSquare = getSquare(neighbour);
                     float distancetoNeighbour = (col && row) ? 1.4f : 1.0f; // if this is diagonal set distance to 1.4 else 1 
                     float total_cost = neighSquare.curcost + distancetoNeighbour + terrain->enemyVisionLayer.get_value(pos);
 
@@ -723,6 +729,13 @@ void AStarPather2::update_path(PathRequest& request)
             }
         } // end of if (cheapest.mincost < cheapest.curcost)
     } // end of while (ol_size != 0)
+
+    // DUH, PATH DOESN'T GET RECONSTRUCTED IF OPENLIST IS EMPTIED OUT
+    // PATH RESTRUCTURED
+    // build new path from original starting tile
+    Square& start = getSquare(terrain->get_grid_position(path.front()));
+    request.path.clear();
+    buildPath(start, request);
 }
 
 // checks to see if grid position is not out of bounds, not a wall, and not the way back
