@@ -377,7 +377,65 @@ void AStarPather2::expand(GridPos centertile, const PathRequest& request)
             }
         }
     }
+}
 
+void AStarPather2::update_expand(GridPos centertile, const PathRequest& request)
+{
+    Square& centerSquare = grid[centertile.row][centertile.col];
+    for (int col = -1; col <= 1; col++)
+    {
+        for (int row = -1; row <= 1; row++)
+        {
+            if (!(col || row)) //if this is the center tile
+            {
+                continue;
+            }
+            GridPos neighbour = centertile;
+            neighbour.col += col;
+            neighbour.row += row;
+            if (!terrain->is_valid_grid_position(neighbour.row, neighbour.col))
+            {
+                continue;
+            }
+            if (terrain->is_wall(neighbour.row, neighbour.col))
+            {
+                continue;
+            }
+            // calc cost
+            GridPos parentPos;
+            Square& neighboursquare = grid[neighbour.row][neighbour.col];
+            float distancetoNeighbour = (col && row) ? 1.4f : 1.0f; // if this is diagonal set distance to 1.4 else 1 
+            unpackPos(neighboursquare.parentXY, parentPos);
+
+            // calc total cost to reach this node from the center square, enemy weight included
+            float total_cost = centerSquare.curcost + distancetoNeighbour + terrain->enemyVisionLayer.get_value(neighbour);
+
+            if (
+                (neighboursquare.state == SS_NEW) || //if it hasn't been on the open list
+                (parentPos == centertile && (neighboursquare.curcost != total_cost)) //or the cost isn't correct in the node
+                )
+            {
+                compactPos(neighboursquare.parentXY, centertile); // assign new parent
+                // add to openlist
+                Insert(neighbour, total_cost, request);
+            }
+            else if (parentPos != centertile && (neighboursquare.curcost > total_cost)) // or we found a cheaper parent
+            {
+                // centertile is in lower state
+                Insert(centertile, centerSquare.curcost, request);
+
+            }
+            else if (parentPos != centertile && neighboursquare.state == SS_CLOSED && neighboursquare.curcost > centerSquare.mincost)
+            {
+                float cost_to_neighbour = neighboursquare.curcost + distancetoNeighbour + terrain->enemyVisionLayer.get_value(centertile);
+                if (centerSquare.curcost > cost_to_neighbour)
+                {
+                    // neighbor is in lower state
+                    Insert(neighbour, neighboursquare.curcost, request);
+                }
+            }
+        }
+    }  
 }
 
 // D*: Insert
@@ -631,20 +689,33 @@ void AStarPather2::update_path(PathRequest& request)
                     float distancetoNeighbour = (col && row) ? 1.4f : 1.0f; // if this is diagonal set distance to 1.4 else 1 
                     float total_cost = neighSquare.curcost + distancetoNeighbour + terrain->enemyVisionLayer.get_value(pos);
 
-                    // if this neighbour is a better parent now
-                    if (neighSquare.curcost <= neighSquare.mincost && cheapest.curcost > total_cost)
+                    // if this neighbour is a better parent now                                     // only evaluated nodes count
+                    if (neighSquare.curcost <= cheapest.mincost && cheapest.curcost > total_cost && total_cost < RAISED_COST)
                     {
                         cheapest.parentXY = neighbour; // this is the new parent now
                         cheapest.curcost = total_cost; // assign the new & less expensive cost
                     }
                 }
-            }
-            // end of get all neighbors
+            }// end of get all neighbors
 
-            // TODO: ???
-            expand(pos, request); // Is this right?
+            update_expand(pos, request);
+        } // end of if (cheapest.mincost < cheapest.curcost)
+        else if (cheapest.mincost == cheapest.curcost)
+        {
+            expand(pos, request);
         }
-    }
+        else
+        {
+            std::cout << "ERROR: Cheapest mincost is greater than it's curcost\n";
+        }
+
+        // place on closed list
+        cheapest.state = SS_CLOSED;
+        if (request.settings.debugColoring)
+        {
+            terrain->set_color(pos, Colors::Orange);
+        }
+    } // end of while (ol_size != 0)
 }
 
 // checks to see if grid position is not out of bounds, not a wall, and not the way back

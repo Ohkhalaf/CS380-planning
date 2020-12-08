@@ -198,6 +198,8 @@ private:
     void smoothPath();
     //to expand the area we're looking at
     void expand(GridPos, const PathRequest& request);
+    // expand function to call when updating path
+    void update_expand(GridPos centertile, const PathRequest& request);
 
     // D*: Inserts all neighbors of a centertile as well as centertile
     void AddAllNeighbours(GridPos centertile, const PathRequest& request);
