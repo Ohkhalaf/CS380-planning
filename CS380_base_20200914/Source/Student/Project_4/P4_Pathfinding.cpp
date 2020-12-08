@@ -62,8 +62,7 @@ void AStarPather2::printSquare(const Square& s)
 // builds the path to the goal
 void AStarPather2::buildPath(const Square& goal, PathRequest& request)
 {
-    // allocate memory first off
-    pathstack.reserve(static_cast<int>(floor(goal.curcost)));
+    pathstack.clear();
 
     // add the goal world coordinates
     pathstack.push_back(terrain->get_world_position(terrain->get_grid_position(request.start)));
@@ -77,9 +76,13 @@ void AStarPather2::buildPath(const Square& goal, PathRequest& request)
     {
         // add square to the path
         pathstack.push_back(terrain->get_world_position(getRow(parent), getCol(parent)));
+        if (pathstack.size() > 100)
+        {
+            std::cout << "bruh" << std::endl;
+        }
 
         // get next square
-        parent = getSquare(getRow(parent), getCol(parent)).parentXY;
+        parent = getSquare(parent).parentXY;
     }
 
     std::reverse(pathstack.begin(), pathstack.end());
@@ -379,8 +382,9 @@ void AStarPather2::expand(GridPos centertile, const PathRequest& request)
     }
 }
 
-void AStarPather2::update_expand(GridPos centertile, const PathRequest& request)
+bool AStarPather2::update_expand(GridPos centertile, const PathRequest& request)
 {
+    bool replaced = false;
     Square& centerSquare = grid[centertile.row][centertile.col];
     for (int col = -1; col <= 1; col++)
     {
@@ -423,6 +427,7 @@ void AStarPather2::update_expand(GridPos centertile, const PathRequest& request)
             {
                 // centertile is in lower state
                 Insert(centertile, centerSquare.curcost, request);
+                replaced = true;
 
             }
             else if (parentPos != centertile && neighboursquare.state == SS_CLOSED && neighboursquare.curcost > centerSquare.mincost)
@@ -436,6 +441,7 @@ void AStarPather2::update_expand(GridPos centertile, const PathRequest& request)
             }
         }
     }  
+    return replaced;
 }
 
 // D*: Insert
@@ -652,7 +658,7 @@ void AStarPather2::update_path(PathRequest& request)
         --ol_size;
 
         // place on closed list
-        cheapest.state = SS_CLOSED;
+        //cheapest.state = SS_CLOSED;
         if (request.settings.debugColoring)
         {
             terrain->set_color(pos, Colors::Orange);
@@ -711,7 +717,10 @@ void AStarPather2::update_path(PathRequest& request)
                 }
             }// end of get all neighbors
 
-            update_expand(pos, request);
+            if (!update_expand(pos, request))
+            {
+                cheapest.state = SS_CLOSED;
+            }
         } // end of if (cheapest.mincost < cheapest.curcost)
     } // end of while (ol_size != 0)
 }
