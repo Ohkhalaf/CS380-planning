@@ -522,8 +522,9 @@ void CompareLayers(const MapLayer<float>& layer1, const MapLayer<float>& layer2)
 
                 // TODO: I think we need to do this?                          <---------------------------- I'M NOT SURE
                 // MAYBE THIS IS WHERE WE SET RAISED VERSUS LOWERED STATE????
-                affected.curcost -= layer1.get_value(row, col);
-                affected.curcost += layer2.get_value(row, col);
+                //affected.curcost -= layer1.get_value(row, col);
+                //affected.curcost += layer2.get_value(row, col);
+                affected.curcost += 5000.0f;
             }
         }
     }

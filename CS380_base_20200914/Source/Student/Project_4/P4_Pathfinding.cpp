@@ -451,7 +451,7 @@ void AStarPather2::Insert(GridPos pos, float new_cost, const PathRequest& reques
 
         if (node.state == SS_CLOSED)
         {
-            node.state = SS_OPEN;
+            //node.state = SS_OPEN;
             if (request.settings.debugColoring)
             {
                 terrain->set_color(pos, Colors::Cyan);
@@ -460,7 +460,7 @@ void AStarPather2::Insert(GridPos pos, float new_cost, const PathRequest& reques
     }
     else
     {
-        node.state = SS_OPEN; // apparently not stated?
+        //node.state = SS_OPEN; // apparently not stated?
         node.mincost = new_cost;
         node.curcost = new_cost;
         if (request.settings.debugColoring)
@@ -468,9 +468,13 @@ void AStarPather2::Insert(GridPos pos, float new_cost, const PathRequest& reques
             terrain->set_color(pos, Colors::SeaGreen);
         }
     }
-
+    // TODO: Change to only insert closed or new nodes?
     // add neigbouring node to openlist
-    insertSortList(node, pos);
+    if (node.state != SS_OPEN)
+    {
+        insertSortList(node, pos);
+    }
+    node.state = SS_OPEN;
 
     // does this belong here? most likely.
     node.isDirty = false;
@@ -556,6 +560,13 @@ PathResult AStarPather2::compute_path(PathRequest &request)
         unpackPos(cheapest.parentXY, prev);
         --ol_size; // OPENLIST CHANGES:openlist.pop_back();
 
+        // place on closed list
+        cheapest.state = SS_CLOSED;
+        if (request.settings.debugColoring)
+        {
+            terrain->set_color(pos, Colors::Orange);
+        }
+
         // check if this is the goal
         if (pos == goal)
         {
@@ -576,13 +587,6 @@ PathResult AStarPather2::compute_path(PathRequest &request)
 
         //for D* swap to expand()
         expand(pos, request);
-
-        // place on closed list
-        cheapest.state = SS_CLOSED;
-        if (request.settings.debugColoring)
-        {
-            terrain->set_color(pos, Colors::Orange);
-        }
 
         // check for interrupt
         if (request.settings.singleStep)
@@ -647,12 +651,21 @@ void AStarPather2::update_path(PathRequest& request)
         Square& cheapest = getSquare(pos);
         --ol_size;
 
+        // place on closed list
+        cheapest.state = SS_CLOSED;
+        if (request.settings.debugColoring)
+        {
+            terrain->set_color(pos, Colors::Orange);
+        }
+
         // if the next tile on the openlist is unessecary for the new path
         if (pathbreaker.curcost < cheapest.mincost)
         {
             // PATH RESTRUCTURED
             // build new path from original starting tile
-            buildPath(getSquare(terrain->get_grid_position(path.front())), request);
+            Square& start = getSquare(terrain->get_grid_position(path.front()));
+            request.path.clear();
+            buildPath(start, request);
             return;
         }
 
@@ -700,21 +713,6 @@ void AStarPather2::update_path(PathRequest& request)
 
             update_expand(pos, request);
         } // end of if (cheapest.mincost < cheapest.curcost)
-        else if (cheapest.mincost == cheapest.curcost)
-        {
-            expand(pos, request);
-        }
-        else
-        {
-            std::cout << "ERROR: Cheapest mincost is greater than it's curcost\n";
-        }
-
-        // place on closed list
-        cheapest.state = SS_CLOSED;
-        if (request.settings.debugColoring)
-        {
-            terrain->set_color(pos, Colors::Orange);
-        }
     } // end of while (ol_size != 0)
 }
 
