@@ -34,7 +34,7 @@ private:
         DROPPING
     } state;
 
-    static constexpr float movementSpeed = 2000.0f / 1.0f;
+    static constexpr float movementSpeed = 200.0f / 1.0f;
 
     std::vector<Agent*> get_nearby_soldiers();
     void pick_up_soldier(SoldierAgent* s);

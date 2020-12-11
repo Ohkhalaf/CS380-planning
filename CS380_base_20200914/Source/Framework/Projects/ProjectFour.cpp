@@ -465,10 +465,10 @@ void ProjectFour::enemy_field_of_view(MapLayer<float>& layer, float fovAngle, fl
     // normalize the viewing vector
     view_dir.Normalize();
 
-    //layer.set_value(grid_pos.row, grid_pos.col, occupancyValue);
+    layer.set_value(grid_pos.row, grid_pos.col, occupancyValue);
 
     // TEMP TODO
-    
+    /*
     // for every cell in the layer
     for (int row = 0; row < terrain->get_map_height(); ++row)
     {
@@ -503,7 +503,7 @@ void ProjectFour::enemy_field_of_view(MapLayer<float>& layer, float fovAngle, fl
             }
         }
     }
-    
+    */
 }
 
 // clears out the given map layer
@@ -533,7 +533,7 @@ void CompareLayers(const std::vector<float>& layer1, const MapLayer<float>& laye
                 // MAYBE THIS IS WHERE WE SET RAISED VERSUS LOWERED STATE????
                 //affected.curcost -= layer1.get_value(row, col);
                 //affected.curcost += layer2.get_value(row, col);
-                //affected.curcost += 5000.0f;
+                affected.curcost += 5000.0f;
             }
         }
     }

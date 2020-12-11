@@ -332,7 +332,12 @@ void AStarPather2::AddAllNeighbours(GridPos centertile, const PathRequest& reque
                 }
             }
             */
-            Insert(neighbour, getSquare(neighbour).curcost, request);
+            //Insert(neighbour, getSquare(neighbour).curcost, request);
+            if (getSquare(neighbour).state != SS_OPEN)
+            {
+                insertSortList(getSquare(neighbour), neighbour);
+                getSquare(neighbour).state = SS_OPEN;
+            }
         }
     }
 }
@@ -633,7 +638,7 @@ void AStarPather2::update_path(PathRequest& request)
 
             // NOTE: Do we only do this if cost is now higher?
             // what if it's actually lower than before?
-            node->curcost += RAISED_COST;
+            //node->curcost += RAISED_COST;
 
             // changing color to signify raised
             if (request.settings.debugColoring)
@@ -661,6 +666,7 @@ void AStarPather2::update_path(PathRequest& request)
         // pop the cheapest node off
         unpackPos(openlist[ol_size - 1], pos);
         Square& cheapest = getSquare(pos);
+        cheapest.state = SS_CLOSED;
         --ol_size;
 
         // place on closed list
@@ -725,7 +731,7 @@ void AStarPather2::update_path(PathRequest& request)
 
             if (!update_expand(pos, request))
             {
-                cheapest.state = SS_CLOSED;
+                //cheapest.state = SS_CLOSED;
             }
         } // end of if (cheapest.mincost < cheapest.curcost)
     } // end of while (ol_size != 0)
@@ -736,6 +742,7 @@ void AStarPather2::update_path(PathRequest& request)
     Square& start = getSquare(terrain->get_grid_position(path.front()));
     request.path.clear();
     buildPath(start, request);
+    std::cout << "\nRAN OUT OF LIST!\n";
 }
 
 // checks to see if grid position is not out of bounds, not a wall, and not the way back
