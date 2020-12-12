@@ -71,6 +71,8 @@ void AStarPather2::buildPath(const Square& goal, PathRequest& request)
     // no rubberbanding, build path as is
     XY parent = goal.parentXY;
 
+    std::vector<XY> parents;
+
     // while the next square has a parent
     while (parent.row != -1)
     {
@@ -80,8 +82,13 @@ void AStarPather2::buildPath(const Square& goal, PathRequest& request)
         {
             std::cout << "bruh" << std::endl;
         }
-
+        if (std::find(parents.begin(), parents.end(), parent) != parents.end())
+        {
+            break;
+        }
         // get next square
+        
+        parents.push_back(parent);
         parent = getSquare(parent).parentXY;
     }
 
@@ -463,7 +470,7 @@ void AStarPather2::Insert(GridPos pos, float new_cost, const PathRequest& reques
         break;
     case SS_CLOSED:
         node.mincost = new_cost > node.curcost ? node.curcost : new_cost;
-        if (request.settings.debugColoring) terrain->set_color(pos, Colors::Cyan);
+        //if (request.settings.debugColoring) terrain->set_color(pos, Colors::Cyan);
         break;
     case SS_OPEN:
         node.mincost = new_cost > node.mincost ? node.mincost : new_cost;
@@ -846,10 +853,10 @@ void AStarPather2::computeCost(const Square& parent, GridPos parent_pos, const i
             // update node
             child.parentXY = parent_pos;
             child.state = SS_OPEN;
-            if (request.settings.debugColoring)
-            {
-                terrain->set_color(child_pos, Colors::Cyan);
-            }
+           //if (request.settings.debugColoring)
+           //{
+           //    terrain->set_color(child_pos, Colors::Cyan);
+           //}
             child.mincost = given;
             child.curcost = total;
 
@@ -873,10 +880,10 @@ void AStarPather2::computeCost(const Square& parent, GridPos parent_pos, const i
 
         // place on open list
         child.state = SS_OPEN;
-        if (request.settings.debugColoring)
-        {
-            terrain->set_color(child_pos, Colors::Cyan);
-        }
+       // if (request.settings.debugColoring)
+       // {
+       //     terrain->set_color(child_pos, Colors::Cyan);
+       // }
 
         // CHANGES: NEW SORT 
         insertSortList(child, child_xy);

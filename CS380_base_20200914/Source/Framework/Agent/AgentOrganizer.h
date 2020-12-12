@@ -38,6 +38,7 @@ public:
     BehaviorAgent *create_behavior_agent(const char *agentType, BehaviorTreeTypes treeType);
     AStarAgent *create_pathing_agent();
     EnemyAgent *create_enemy_agent();
+    void decrement_ID();
     APCAgent *create_apc_agent();
     SoldierAgent *create_soldier_agent();
     void destroy_agent(Agent *agent);

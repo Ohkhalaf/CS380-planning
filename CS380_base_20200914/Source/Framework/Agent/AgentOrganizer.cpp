@@ -106,6 +106,12 @@ EnemyAgent *AgentOrganizer::create_enemy_agent()
     return agent;
 }
 
+void AgentOrganizer::decrement_ID()
+{
+    auto& idCounter = agentIDCounts[AStarAgent::patherTypeName];
+    idCounter = 1;
+}
+
 APCAgent *AgentOrganizer::create_apc_agent()
 {
     auto& idCounter = agentIDCounts["APC Agent"];

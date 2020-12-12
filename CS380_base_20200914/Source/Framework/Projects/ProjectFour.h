@@ -71,6 +71,7 @@ public:
             agents->destroy_agent(unit);
         }
         enemy.clear();
+        agents->decrement_ID();
     }
 
     float get_enemy_rotation()
