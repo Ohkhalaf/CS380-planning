@@ -454,44 +454,33 @@ void AStarPather2::Insert(GridPos pos, float new_cost, const PathRequest& reques
 {
     Square& node = getSquare(pos);
 
-    //if the new cost is cheaper than the minimum set it else just set the curcost
-    if (node.state != SS_NEW)
+    // figure what to set min cost to
+    switch (node.state)
     {
-        if (node.state == SS_CLOSED)
-        {
-            node.mincost = new_cost > node.curcost ? node.curcost : new_cost;
-            //node.state = SS_OPEN;
-            if (request.settings.debugColoring)
-            {
-                terrain->set_color(pos, Colors::Cyan);
-            }
-        }
-        else if (node.state == SS_OPEN)
-        {
-            node.mincost = new_cost > node.mincost ? node.mincost : new_cost;
-        }
-        node.curcost = new_cost;
-    }
-    else
-    {
-        //node.state = SS_OPEN; // apparently not stated?
+    case SS_NEW:
         node.mincost = new_cost;
-        node.curcost = new_cost;
-        if (request.settings.debugColoring)
-        {
-            terrain->set_color(pos, Colors::SeaGreen);
-        }
+        if (request.settings.debugColoring) terrain->set_color(pos, Colors::SeaGreen);
+        break;
+    case SS_CLOSED:
+        node.mincost = new_cost > node.curcost ? node.curcost : new_cost;
+        if (request.settings.debugColoring) terrain->set_color(pos, Colors::Cyan);
+        break;
+    case SS_OPEN:
+        node.mincost = new_cost > node.mincost ? node.mincost : new_cost;
+        break;
+    default:
+        if (request.settings.debugColoring) terrain->set_color(pos, Colors::HotPink);
+        break;
     }
-    // TODO: Change to only insert closed or new nodes?
-    // add neigbouring node to openlist
-    if (node.state != SS_OPEN)
-    {
-        insertSortList(node, pos);
-    }
+    // set the new current cost
+    node.curcost = new_cost;
+
+    // add node to openlist if not already in
+    insertSortList(node, pos);
     node.state = SS_OPEN;
 
-    // does this belong here? most likely.
-    node.isDirty = false;
+    // does this belong here?
+    //node.isDirty = false;
 }
 
 PathResult AStarPather2::compute_path(PathRequest &request)
@@ -540,22 +529,11 @@ PathResult AStarPather2::compute_path(PathRequest &request)
         if (request.settings.debugColoring)
         {
             terrain->set_color(start, Colors::Yellow);
-            terrain->set_color(goal, Colors::ForestGreen);
+            terrain->set_color(goal, Colors::Yellow);
         }
 
         clearData();
 
-        /*
-        // push starting node into the open list
-        Square& begin = getSquare(start);
-        begin.state = AStarPather2::SS_OPEN;
-        begin.parentXY.row = -1;
-        begin.parentXY.col = -1;
-        begin.isDirty = false;
-        // OPENLIST CHANGES: openlist.push_back(begin.parentXY);
-        openlist[ol_size] = start;
-        ++ol_size;
-        */
         Insert(start, 0.0f, request);
     }
 
@@ -567,15 +545,15 @@ PathResult AStarPather2::compute_path(PathRequest &request)
     while (ol_size != 0) // OPENLIST CHANGES:!openlist.empty())
     {
         // pop the cheapest node off
-        //bucketSort();
-        unpackPos(openlist[ol_size - 1], pos); // OPENLIST CHANGES:openlist.back(), pos);
+        unpackPos(openlist[ol_size - 1], pos);
         Square& cheapest = getSquare(pos);
 
         unpackPos(cheapest.parentXY, prev);
-        --ol_size; // OPENLIST CHANGES:openlist.pop_back();
+        --ol_size;
 
         // place on closed list
         cheapest.state = SS_CLOSED;
+        cheapest.isDirty = false;
         if (request.settings.debugColoring)
         {
             terrain->set_color(pos, Colors::Orange);
@@ -597,9 +575,6 @@ PathResult AStarPather2::compute_path(PathRequest &request)
         }
 
         /* Get all children */
-        //evaluateChildren(cheapest, pos, prev, goal, request);
-
-        //for D* swap to expand()
         expand(pos, request);
 
         // check for interrupt
@@ -645,7 +620,7 @@ void AStarPather2::update_path(PathRequest& request)
             {
                 terrain->set_color(loc, Colors::IndianRed);
             }
-
+            node->isDirty = false;
             changeFound = true;
             break;
         }
@@ -673,7 +648,7 @@ void AStarPather2::update_path(PathRequest& request)
         //cheapest.state = SS_CLOSED;
         if (request.settings.debugColoring)
         {
-            terrain->set_color(pos, Colors::Orange);
+            terrain->set_color(pos, Colors::Blue);
         }
 
         // if the next tile on the openlist is unessecary for the new path
@@ -736,7 +711,6 @@ void AStarPather2::update_path(PathRequest& request)
         } // end of if (cheapest.mincost < cheapest.curcost)
     } // end of while (ol_size != 0)
 
-    // DUH, PATH DOESN'T GET RECONSTRUCTED IF OPENLIST IS EMPTIED OUT
     // PATH RESTRUCTURED
     // build new path from original starting tile
     Square& start = getSquare(terrain->get_grid_position(path.front()));
@@ -915,6 +889,25 @@ void AStarPather2::computeCost(const Square& parent, GridPos parent_pos, const i
 // this was temporary, but nothing seems to be faster
 void AStarPather2::insertSortList(const Square& node, XY child_xy)
 {
+    // is the node already on the list?
+    if (node.state == SS_OPEN)
+    {
+        // remove from the list first
+        for (int i = 0; i < static_cast<int>(ol_size); ++i)
+        {
+            if (openlist[i] == child_xy)
+            {
+                for (int j = i; j < static_cast<int>(ol_size) - 1; ++j)
+                {
+                    openlist[j] = openlist[j + 1];
+                }
+                --ol_size;
+                break;
+            }
+        }
+    }
+
+    // empty? add to front
     if (ol_size == 0)
     {
         openlist[ol_size] = child_xy;
@@ -922,6 +915,7 @@ void AStarPather2::insertSortList(const Square& node, XY child_xy)
         return;
     }
 
+    // quick check to see if it belongs at the end
     if (getSquare(openlist[ol_size - 1]).mincost >= node.mincost)
     {
         openlist[ol_size] = child_xy;
@@ -929,6 +923,7 @@ void AStarPather2::insertSortList(const Square& node, XY child_xy)
         return;
     }
 
+    // search for proper place in sorted array
     for (int i = 0; i < static_cast<int>(ol_size); ++i)
     {
         if (getSquare(openlist[i]).mincost < node.mincost)
