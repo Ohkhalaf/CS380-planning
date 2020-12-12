@@ -311,30 +311,6 @@ void ProjectFour::build_ui()
     auto goalText = ui->create_value_text_field(UIAnchor::BOTTOM, startText,
         10, L"Goal:", goalGetter);
 
-    Callback testCB = std::bind(&PathTester::execute_current_test, &tester);
-    TextGetter testText = std::bind(&PathTester::get_button_text, &tester);
-    auto testButton = ui->create_dynamic_button(UIAnchor::BOTTOM, goalText, 10,
-        testCB, testText);
-
-    Callback nextTestCB = std::bind(&PathTester::goto_next_test, &tester);
-    auto nextTestButton = ui->create_button(UIAnchor::BOTTOM, testButton, 10,
-        nextTestCB, L"Next Test");
-
-    Callback allTestsCB = std::bind(&PathTester::execute_all_tests, &tester);
-    auto allTestsButton = ui->create_button(UIAnchor::BOTTOM, nextTestButton, 10,
-        allTestsCB, L"Run All Tests");
-
-    Callback failureCB = std::bind(&PathTester::goto_next_failed, &tester);
-    Getter<bool> failureCond = std::bind(&PathTester::has_multiple_failed_tests, &tester);
-    auto failureButton = ui->create_conditional_button(UIAnchor::BOTTOM, allTestsButton,
-        10, failureCB, L"Next Failed Test", failureCond);
-
-    Callback speedCB = std::bind(&PathTester::execute_speed_test, &tester);
-    auto speedTestButton = ui->create_button(UIAnchor::BOTTOM, failureButton, 10,
-        speedCB, L"Run Speed Test");
-
-
-
     // add a text field at the top for the project
     auto projectBanner = ui->create_banner_text_field(UIAnchor::TOP, 0, 32,
         UIAnchor::CENTER, L"Student Project");

@@ -204,6 +204,7 @@ void Engine::on_resuming()
 
 void Engine::change_projects(Project::Type proj)
 {
+    return;
     projectType = proj;
     projectChange = true;
 }
