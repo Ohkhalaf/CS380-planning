@@ -533,7 +533,7 @@ void CompareLayers(const std::vector<float>& layer1, const MapLayer<float>& laye
                 // MAYBE THIS IS WHERE WE SET RAISED VERSUS LOWERED STATE????
                 //affected.curcost -= layer1.get_value(row, col);
                 //affected.curcost += layer2.get_value(row, col);
-                affected.curcost += 5000.0f;
+                //affected.curcost += 5000.0f;
             }
         }
     }

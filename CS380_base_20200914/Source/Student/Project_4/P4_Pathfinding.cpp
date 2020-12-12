@@ -613,7 +613,7 @@ void AStarPather2::update_path(PathRequest& request)
 
             // NOTE: Do we only do this if cost is now higher?
             // what if it's actually lower than before?
-            //node->curcost += RAISED_COST;
+            node->curcost += RAISED_COST;
 
             // changing color to signify raised
             if (request.settings.debugColoring)
