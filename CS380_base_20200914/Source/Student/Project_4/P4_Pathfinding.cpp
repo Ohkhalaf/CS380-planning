@@ -65,7 +65,7 @@ void AStarPather2::buildPath(const Square& goal, PathRequest& request)
     pathstack.clear();
 
     // add the goal world coordinates
-    pathstack.push_back(terrain->get_world_position(terrain->get_grid_position(request.start)));
+    pathstack.push_back(terrain->get_world_position(terrain->get_grid_position(agents->get_all_agents()[0]->get_position())));
 
     // RUBBERBANDING
     // no rubberbanding, build path as is
@@ -78,12 +78,11 @@ void AStarPather2::buildPath(const Square& goal, PathRequest& request)
     {
         // add square to the path
         pathstack.push_back(terrain->get_world_position(getRow(parent), getCol(parent)));
-        if (pathstack.size() > 100)
+        if (std::find(parents.begin(), parents.end(), parent) != parents.end()) //if we detect a loop
         {
-            std::cout << "bruh" << std::endl;
-        }
-        if (std::find(parents.begin(), parents.end(), parent) != parents.end())
-        {
+            request.newRequest = true;
+            pathstack.clear();
+            return;
             break;
         }
         // get next square
